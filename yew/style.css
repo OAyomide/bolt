@@ -265,6 +265,23 @@ body {
 	overflow: scroll;
 }
 
+.resperror {
+	width: 100%;
+  height: 100%;
+	overflow: scroll;
+	background-color: rgb(3, 7, 13);
+	border: 0.5px solid gray;
+	color: rgb(247, 81, 62);
+	font-size: 20px;
+	padding: 5px;
+
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	text-align: center;
+}
+
 .respbody:focus {
   outline: none;
 }

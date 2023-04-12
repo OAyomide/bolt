@@ -17,8 +17,10 @@ mod helpers;
 // #[wasm_bindgen(module = "/script.js")]
 // extern "C" {}
 
-// TODO: enter button to send
-// TODO: Copy response body button 
+// TODO: Copy response body button
+// TODO: Loading screen for sending requests
+// TODO: set up release github actions
+// FIXME: request headers and params do not scroll
 
 // Define the possible messages which can be sent to the component
 #[derive(Clone)]
@@ -62,6 +64,8 @@ pub enum Msg {
     Update,
     HelpPressed,
     SwitchPage(Page),
+
+    Nothing,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Copy, PartialEq, Eq)]
@@ -88,6 +92,7 @@ struct Response {
     size: u64,
     response_type: ResponseType,
     request_index: usize,
+    failed: bool,
 }
 
 impl Response {
@@ -100,6 +105,7 @@ impl Response {
             size: 0,
             response_type: ResponseType::TEXT,
             request_index: 0,
+            failed: false,
         }
     }
 }
@@ -116,7 +122,6 @@ pub struct Request {
 
     // META
     name: String,
-    request_index: usize,
 
     req_tab: u8,
     resp_tab: u8,
@@ -135,7 +140,6 @@ impl Request {
 
             // META
             name: "New Request ".to_string(),
-            request_index: 0,
 
             req_tab: 1,
             resp_tab: 1,
@@ -262,10 +266,10 @@ fn send_request(request: &Request) {
         method: request.method,
         body: request.body.clone(),
         headers: request.headers.clone(),
-        index: request.request_index,
+        index: request.response.request_index,
     };
 
-    // bolt_log(&format!("{:?}", payload));
+    // _bolt_log(&format!("{:?}", payload));
 
     wasm_bindgen_futures::spawn_local(async move {
         let _resp: String = tauri::invoke("send_request", &payload).await.unwrap();
@@ -280,7 +284,7 @@ pub fn receive_response(data: &str) {
 
     let mut response: Response = serde_json::from_str(data).unwrap();
 
-    // bolt_log(&format!("{:?}", response));
+    // _bolt_log(&format!("{:?}", response));
 
     if response.response_type == ResponseType::JSON {
         response.body = format_json(&response.body);

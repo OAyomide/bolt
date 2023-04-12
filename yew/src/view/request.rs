@@ -1,3 +1,5 @@
+// use web_sys::InputEvent;
+use yew::KeyboardEvent;
 use crate::view;
 use crate::BoltContext;
 use crate::Msg;
@@ -47,7 +49,9 @@ pub fn request(bctx: &mut BoltContext) -> Html {
                     </select>
                 </div>
 
-                <input id="urlinput" class="urlinput" type="text" value={request.url.clone()} placeholder="http://" onchange={link.callback(|_| Msg::UrlChanged)}/>
+                // <input id="urlinput" class="urlinput" type="text" value={request.url.clone()} placeholder="http://" onkeydown={link.callback(|e: KeyboardEvent| { if e.key() == "Enter" { Msg::SendPressed } else { Msg::UrlChanged } }) } />
+
+                <input id="urlinput" class="urlinput" type="text" value={request.url.clone()} placeholder="http://" onkeydown={link.callback(|e: KeyboardEvent| { if e.key() == "Enter" { Msg::SendPressed } else { Msg::Nothing } })}  oninput={link.callback(|_|{ Msg::UrlChanged })} />
 
                 <button class="sendbtn pointer" type="button" onclick={link.callback(|_| Msg::SendPressed)}>{"Send"}</button>
             </div>

@@ -73,6 +73,10 @@ function init_resize() {
   const sidebar = document.querySelector(".sidebars");
   const resp = document.querySelector(".resp");
 
+  const url_input = document.querySelector(".urlinput");
+  url_input.focus();
+
+
     
   sidebar.style.width = '250px';
 

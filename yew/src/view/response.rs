@@ -26,7 +26,7 @@ pub fn response(bctx: &mut BoltContext) -> Html {
 
     html! {
     <div class="resp">
-        if can_display {
+        if can_display && !request.response.failed {
         <div class="respline">
             <div class="resptabs">
                 <div id="resp_body_tab" class={if request.resp_tab == 1  {"tab pointer tabSelected"} else {"tab pointer"}} onclick={link.callback(|_| Msg::RespBodyPressed)}>{"Body"}</div>
@@ -61,6 +61,8 @@ pub fn response(bctx: &mut BoltContext) -> Html {
                 </div>
             }
         </div>
+        } else if request.response.failed {
+            <div class="resperror">{request.response.body.clone()}</div>
         }
     </div>
     }

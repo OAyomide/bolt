@@ -8,6 +8,9 @@ use crate::Request;
 
 pub fn process(bctx: &mut BoltContext, msg: Msg) -> bool {
     match msg {
+        
+        Msg::Nothing => {false}
+        
         Msg::SelectedMethod(meth) => {
             if bctx.page == Page::Home {
                 let current = bctx.main_current;
@@ -310,11 +313,15 @@ pub fn process(bctx: &mut BoltContext, msg: Msg) -> bool {
         Msg::SelectRequest(index) => {
             bctx.main_current = index;
 
-            true
+            bctx.main_col.requests[index].response.request_index = index;
+
+            true;
         }
 
         Msg::SelectFromCollection(col_index, req_index) => {
             bctx.col_current = vec![col_index, req_index];
+
+            bctx.collections[col_index].requests[req_index].response.request_index = req_index;
 
             true
         }

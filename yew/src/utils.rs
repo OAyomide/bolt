@@ -59,6 +59,16 @@ pub fn _set_html(id: &str, content: String) {
     div.set_inner_html(&content);
 }
 
+pub fn _set_focus(id: &str) {
+    let window = web_sys::window().unwrap();
+    let doc = web_sys::Window::document(&window).unwrap();
+    let div = web_sys::Document::get_element_by_id(&doc, id).unwrap();
+
+    let div = div.dyn_into::<web_sys::HtmlElement>().unwrap();
+
+    div.focus().unwrap();
+}
+
 pub fn get_method() -> Method {
     let window = web_sys::window().unwrap();
     let doc = web_sys::Window::document(&window).unwrap();

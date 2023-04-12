@@ -33,6 +33,22 @@ struct HttpResponse {
     size: u64,
     response_type: ResponseType,
     request_index: usize,
+    failed: bool,
+}
+
+impl HttpResponse {
+    fn new() -> Self {
+        HttpResponse {
+            status: 0,
+            body: String::new(),
+            headers: Vec::new(),
+            time: 0,
+            size: 0,
+            response_type: ResponseType::TEXT,
+            request_index: 0,
+            failed: false,
+        }
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -52,15 +68,7 @@ struct AppState {
 impl AppState {
     fn new() -> Self {
         Self {
-            response: HttpResponse {
-                status: 0,
-                body: String::new(),
-                headers: Vec::new(),
-                time: 0,
-                size: 0,
-                response_type: ResponseType::TEXT,
-                request_index: 0,
-            },
+            response: HttpResponse::new(),
         }
     }
 }
@@ -117,18 +125,18 @@ fn send_request(
     return "done".to_string();
 }
 
-fn http_send(req: HttpRequest) -> HttpResponse {
-    let mut resp = HttpResponse {
-        status: 0,
-        body: String::new(),
-        headers: Vec::new(),
-        time: 0,
-        size: 0,
-        response_type: ResponseType::TEXT,
-        request_index: 0,
-    };
+fn http_send(mut req: HttpRequest) -> HttpResponse {
+    let mut resp = HttpResponse::new();
 
     resp.request_index = req.request_index;
+
+    if !req.url.contains("http") {
+        let new_url = "http://".to_string() + &req.url;
+
+        req.url = new_url;
+    }
+
+    // bolt_log(&req.url);
 
     let mut request = prepare_request(req.clone());
 
@@ -140,28 +148,44 @@ fn http_send(req: HttpRequest) -> HttpResponse {
     }
 
     let start = get_timestamp();
-    let response = request.send().unwrap();
+    let response = request.send();
     let end = get_timestamp();
 
-    let headers = extract_headers(response.headers());
+    let http_response = match response {
+        Ok(resp) => {
+            let mut new_response = HttpResponse::new();
 
-    resp.status = response.status().as_u16();
-    resp.time = (end - start) as u32;
-    resp.body = response.text().unwrap();
-    resp.headers = headers;
-    resp.size = resp.body.len() as u64;
+            new_response.headers = extract_headers(resp.headers());
+            new_response.status = resp.status().as_u16();
+            new_response.time = (end - start) as u32;
+            new_response.body = resp.text().unwrap();
+            new_response.size = new_response.body.len() as u64;
 
-    if resp.headers.contains(&vec![
-        "content-type".to_string(),
-        "application/json".to_string(),
-    ]) {
-        resp.response_type = ResponseType::JSON;
-    }
+            if new_response.headers.contains(&vec![
+                "content-type".to_string(),
+                "application/json".to_string(),
+            ]) {
+                new_response.response_type = ResponseType::JSON;
+            }
+
+            new_response
+        }
+
+        Err(err) => {
+            let mut err_resp = HttpResponse::new();
+
+            err_resp.failed = true;
+
+            err_resp.body = err.to_string();
+
+            err_resp
+        }
+    };
 
     let mut state = GLOBAL_STATE.lock().unwrap();
-    state.response = resp.clone();
+    state.response = http_response.clone();
 
-    return resp;
+    return http_response;
 }
 
 fn prepare_request(req: HttpRequest) -> reqwest::blocking::RequestBuilder {
@@ -174,8 +198,12 @@ fn prepare_request(req: HttpRequest) -> reqwest::blocking::RequestBuilder {
         Method::DELETE => client.delete(req.url).body(req.body),
         Method::HEAD => client.head(req.url).body(req.body),
         Method::PATCH => client.patch(req.url).body(req.body),
-        Method::OPTIONS => client.request(reqwest::Method::OPTIONS, req.url).body(req.body),
-        Method::CONNECT => client.request(reqwest::Method::CONNECT, req.url).body(req.body),
+        Method::OPTIONS => client
+            .request(reqwest::Method::OPTIONS, req.url)
+            .body(req.body),
+        Method::CONNECT => client
+            .request(reqwest::Method::CONNECT, req.url)
+            .body(req.body),
     };
 
     return builder;
