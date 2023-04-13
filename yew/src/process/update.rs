@@ -315,7 +315,7 @@ pub fn process(bctx: &mut BoltContext, msg: Msg) -> bool {
 
             bctx.main_col.requests[index].response.request_index = index;
 
-            true;
+            true
         }
 
         Msg::SelectFromCollection(col_index, req_index) => {
