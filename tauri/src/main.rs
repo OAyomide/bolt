@@ -114,6 +114,8 @@ fn send_request(
         request_index: index,
     };
 
+    // bolt_log(&format!("{:?}", req));
+
     std::thread::spawn(move || {
         let resp: HttpResponse = http_send(req);
 
@@ -126,10 +128,6 @@ fn send_request(
 }
 
 fn http_send(mut req: HttpRequest) -> HttpResponse {
-    let mut resp = HttpResponse::new();
-
-    resp.request_index = req.request_index;
-
     if !req.url.contains("http") {
         let new_url = "http://".to_string() + &req.url;
 
@@ -151,7 +149,7 @@ fn http_send(mut req: HttpRequest) -> HttpResponse {
     let response = request.send();
     let end = get_timestamp();
 
-    let http_response = match response {
+    let mut http_response = match response {
         Ok(resp) => {
             let mut new_response = HttpResponse::new();
 
@@ -181,6 +179,8 @@ fn http_send(mut req: HttpRequest) -> HttpResponse {
             err_resp
         }
     };
+
+    http_response.request_index = req.request_index;
 
     let mut state = GLOBAL_STATE.lock().unwrap();
     state.response = http_response.clone();
