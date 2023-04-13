@@ -49,8 +49,6 @@ pub fn request(bctx: &mut BoltContext) -> Html {
                     </select>
                 </div>
 
-                // <input id="urlinput" class="urlinput" type="text" value={request.url.clone()} placeholder="http://" onkeydown={link.callback(|e: KeyboardEvent| { if e.key() == "Enter" { Msg::SendPressed } else { Msg::UrlChanged } }) } />
-
                 <input id="urlinput" class="urlinput" type="text" value={request.url.clone()} placeholder="http://" onkeydown={link.callback(|e: KeyboardEvent| { if e.key() == "Enter" { Msg::SendPressed } else { Msg::Nothing } })}  oninput={link.callback(|_|{ Msg::UrlChanged })} />
 
                 <button class="sendbtn pointer" type="button" onclick={link.callback(|_| Msg::SendPressed)}>{"Send"}</button>
@@ -68,22 +66,26 @@ pub fn request(bctx: &mut BoltContext) -> Html {
 
                     </textarea>
                 } else if is_tab_selected(&request.req_tab, Params) {
-                    <table>
-                        <tr>
-                            <th>{"Key"}</th>
-                            <th>{"Value"}</th>
-                        </tr>
-                        { for request.params.iter().enumerate().map(|(index, header)| view::param::render_params(bctx, index, request.params.len(), &header[0], &header[1])) }
-                    </table>
+                    <div class="reqheaders">
+                        <table>
+                            <tr>
+                                <th>{"Key"}</th>
+                                <th>{"Value"}</th>
+                            </tr>
+                            { for request.params.iter().enumerate().map(|(index, header)| view::param::render_params(bctx, index, request.params.len(), &header[0], &header[1])) }
+                        </table>
+                    </div>
 
                 } else if is_tab_selected(&request.req_tab, Headers) {
-                    <table>
-                        <tr>
-                            <th>{"Header"}</th>
-                            <th>{"Value"}</th>
-                        </tr>
-                        { for request.headers.iter().enumerate().map(|(index, header)| view::header::render_reqheader(bctx, index, request.headers.len(), &header[0], &header[1])) }
-                    </table>
+                    <div class="reqheaders">
+                        <table>
+                            <tr>
+                                <th>{"Header"}</th>
+                                <th>{"Value"}</th>
+                            </tr>
+                            { for request.headers.iter().enumerate().map(|(index, header)| view::header::render_reqheader(bctx, index, request.headers.len(), &header[0], &header[1])) }
+                        </table>
+                    </div>
                 }
             </div>
         }
