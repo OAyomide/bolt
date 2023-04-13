@@ -20,26 +20,26 @@ pub fn process(bctx: &mut BoltContext, msg: Msg) -> bool {
                 bctx.collections[current[0]].requests[current[1]].method = meth;
             }
 
-            return true;
+            true
         }
 
         Msg::SendPressed => {
             if bctx.page == Page::Home {
-                let req = bctx.main_col.requests[bctx.main_current].clone();
+                let req = &bctx.main_col.requests[bctx.main_current];
                 send_request(req);
             } else {
                 let current = &bctx.col_current;
-                let req = bctx.collections[current[0]].requests[current[1]].clone();
+                let req = &bctx.collections[current[0]].requests[current[1]];
                 send_request(req);
             }
 
-            return true;
+            true
         }
 
         Msg::HelpPressed => {
             open_link("https://github.com/hiro-codes/bolt".to_string());
 
-            return true;
+            true
         }
 
         Msg::ReqBodyPressed => {
@@ -53,7 +53,7 @@ pub fn process(bctx: &mut BoltContext, msg: Msg) -> bool {
                 req.req_tab = 1;
             }
 
-            return true;
+            true
         }
 
         Msg::ReqHeadersPressed => {
@@ -67,7 +67,7 @@ pub fn process(bctx: &mut BoltContext, msg: Msg) -> bool {
                 req.req_tab = 3;
             }
 
-            return true;
+            true
         }
 
         Msg::ReqParamsPressed => {
@@ -81,7 +81,7 @@ pub fn process(bctx: &mut BoltContext, msg: Msg) -> bool {
                 req.req_tab = 2;
             }
 
-            return true;
+            true
         }
 
         Msg::RespBodyPressed => {
@@ -95,7 +95,7 @@ pub fn process(bctx: &mut BoltContext, msg: Msg) -> bool {
                 req.resp_tab = 1;
             }
 
-            return true;
+            true
         }
 
         Msg::RespHeadersPressed => {
@@ -109,11 +109,11 @@ pub fn process(bctx: &mut BoltContext, msg: Msg) -> bool {
                 req.resp_tab = 2;
             }
 
-            return true;
+            true
         }
 
         Msg::ReceivedResponse => {
-            return true;
+            true
         }
 
         Msg::AddHeader => {
@@ -128,7 +128,7 @@ pub fn process(bctx: &mut BoltContext, msg: Msg) -> bool {
                     .headers
                     .push(vec!["".to_string(), "".to_string()]);
             }
-            return true;
+            true
         }
 
         Msg::RemoveHeader(index) => {
@@ -143,7 +143,7 @@ pub fn process(bctx: &mut BoltContext, msg: Msg) -> bool {
                     .remove(index);
             }
 
-            return true;
+            true
         }
 
         Msg::AddParam => {
@@ -158,7 +158,7 @@ pub fn process(bctx: &mut BoltContext, msg: Msg) -> bool {
                     .params
                     .push(vec!["".to_string(), "".to_string()]);
             }
-            return true;
+            true
         }
 
         Msg::AddCollection => {
@@ -167,7 +167,7 @@ pub fn process(bctx: &mut BoltContext, msg: Msg) -> bool {
             new_collection.name = new_collection.name + &(bctx.collections.len() + 1).to_string();
             bctx.collections.push(new_collection);
 
-            return true;
+            true
         }
 
         Msg::RemoveCollection(index) => {
@@ -175,7 +175,7 @@ pub fn process(bctx: &mut BoltContext, msg: Msg) -> bool {
 
             bctx.col_current = vec![0, 0];
 
-            return true;
+            true
         }
 
         Msg::RemoveParam(index) => {
@@ -189,7 +189,7 @@ pub fn process(bctx: &mut BoltContext, msg: Msg) -> bool {
                     .remove(index);
             }
 
-            return true;
+            true
         }
 
         Msg::MethodChanged => {
@@ -203,7 +203,7 @@ pub fn process(bctx: &mut BoltContext, msg: Msg) -> bool {
                 bctx.collections[current[0]].requests[current[1]].method = method;
             }
 
-            return true;
+            true
         }
 
         Msg::UrlChanged => {
@@ -219,7 +219,7 @@ pub fn process(bctx: &mut BoltContext, msg: Msg) -> bool {
                 bctx.collections[current[0]].requests[current[1]].name = url;
             }
 
-            return true;
+            true
         }
 
         Msg::BodyChanged => {
@@ -233,7 +233,7 @@ pub fn process(bctx: &mut BoltContext, msg: Msg) -> bool {
                 bctx.collections[current[0]].requests[current[1]].body = body;
             }
 
-            return true;
+            true
         }
 
         Msg::HeaderChanged(index) => {
@@ -247,7 +247,7 @@ pub fn process(bctx: &mut BoltContext, msg: Msg) -> bool {
                 bctx.collections[current[0]].requests[current[1]].headers[index] = header;
             }
 
-            return true;
+            true
         }
 
         Msg::ParamChanged(index) => {
@@ -261,7 +261,7 @@ pub fn process(bctx: &mut BoltContext, msg: Msg) -> bool {
                 bctx.collections[current[0]].requests[current[1]].params[index] = param;
             }
 
-            return true;
+            true
         }
 
         Msg::AddRequest => {
@@ -270,7 +270,7 @@ pub fn process(bctx: &mut BoltContext, msg: Msg) -> bool {
 
             bctx.main_col.requests.push(new_request);
 
-            return true;
+            true
         }
 
         Msg::AddToCollection(index) => {
@@ -281,7 +281,7 @@ pub fn process(bctx: &mut BoltContext, msg: Msg) -> bool {
 
             collection.requests.push(new_request);
 
-            return true;
+            true
         }
 
         Msg::ToggleCollapsed(index) => {
@@ -289,25 +289,25 @@ pub fn process(bctx: &mut BoltContext, msg: Msg) -> bool {
 
             collection.collapsed = !collection.collapsed;
 
-            return true;
+            true
         }
 
         Msg::RemoveRequest(index) => {
             bctx.main_col.requests.remove(index);
-            if bctx.main_col.requests.len() > 0
+            if !bctx.main_col.requests.is_empty()
                 && bctx.main_current > bctx.main_col.requests.len() - 1
             {
                 bctx.main_current = bctx.main_col.requests.len() - 1;
             }
 
-            return true;
+            true
         }
 
         Msg::RemoveFromCollection(col_index, req_index) => {
             bctx.collections[col_index].requests.remove(req_index);
             bctx.col_current = vec![0, 0];
 
-            return true;
+            true
         }
 
         Msg::SelectRequest(index) => {
@@ -315,7 +315,7 @@ pub fn process(bctx: &mut BoltContext, msg: Msg) -> bool {
 
             bctx.main_col.requests[index].response.request_index = index;
 
-            return true;
+            true;
         }
 
         Msg::SelectFromCollection(col_index, req_index) => {
@@ -323,17 +323,17 @@ pub fn process(bctx: &mut BoltContext, msg: Msg) -> bool {
 
             bctx.collections[col_index].requests[req_index].response.request_index = req_index;
 
-            return true;
+            true
         }
 
         Msg::Update => {
-            return true;
+            true
         }
 
         Msg::SwitchPage(page) => {
             bctx.page = page;
 
-            return true;
+            true
         }
     }
 }
