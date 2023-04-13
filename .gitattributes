@@ -1,2 +1,2 @@
 makefile linguist-generated
-just linguist-generated
+justfile linguist-generated
