@@ -4,19 +4,23 @@ use serde::{Deserialize, Serialize};
 use std::sync::{Arc, Mutex};
 use tauri_sys::tauri;
 use yew::{html::Scope, Component, Context, Html};
+use crate::helpers::enums::HttpMethod as Method;
 
 mod process;
 mod style;
 mod utils;
 mod view;
+mod helpers;
 
 // http://localhost:2000/ping
 
 // #[wasm_bindgen(module = "/script.js")]
 // extern "C" {}
 
-// TODO: enter button to send
-// TODO: Copy response body button 
+// TODO: Copy response body button
+// TODO: Loading screen for sending requests
+// TODO: set up release github actions
+// FIXME: request headers and params do not scroll
 
 // Define the possible messages which can be sent to the component
 #[derive(Clone)]
@@ -60,6 +64,8 @@ pub enum Msg {
     Update,
     HelpPressed,
     SwitchPage(Page),
+
+    Nothing,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Copy, PartialEq, Eq)]
@@ -74,33 +80,6 @@ pub enum ResponseType {
     JSON,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, Copy)]
-pub enum Method {
-    GET,
-    POST,
-    PUT,
-    DELETE,
-    HEAD,
-    PATCH,
-    OPTIONS,
-    CONNECT,
-}
-
-impl Method {
-    fn to_string(&self) -> String {
-        match self {
-            Method::GET => "get".to_string(),
-            Method::POST => "post".to_string(),
-            Method::PUT => "put".to_string(),
-            Method::DELETE => "delete".to_string(),
-            Method::HEAD => "head".to_string(),
-            Method::PATCH => "patch".to_string(),
-            Method::OPTIONS => "options".to_string(),
-            Method::CONNECT => "connect".to_string(),
-        }
-    }
-}
-
 #[derive(Debug, Clone, PartialEq)]
 pub struct BoltApp {}
 
@@ -113,6 +92,7 @@ struct Response {
     size: u64,
     response_type: ResponseType,
     request_index: usize,
+    failed: bool,
 }
 
 impl Response {
@@ -125,6 +105,7 @@ impl Response {
             size: 0,
             response_type: ResponseType::TEXT,
             request_index: 0,
+            failed: false,
         }
     }
 }
@@ -141,7 +122,6 @@ pub struct Request {
 
     // META
     name: String,
-    request_index: usize,
 
     req_tab: u8,
     resp_tab: u8,
@@ -160,7 +140,6 @@ impl Request {
 
             // META
             name: "New Request ".to_string(),
-            request_index: 0,
 
             req_tab: 1,
             resp_tab: 1,
@@ -204,7 +183,7 @@ pub struct BoltContext {
 
 impl BoltContext {
     fn new() -> Self {
-        let bctx = BoltContext {
+        BoltContext {
             link: None,
 
             main_col: Collection::new(),
@@ -214,9 +193,7 @@ impl BoltContext {
             main_current: 0,
             col_current: vec![0, 0],
             // resized: false,
-        };
-
-        return bctx;
+        }
     }
 }
 
@@ -256,15 +233,13 @@ impl Component for BoltApp {
     fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
         let mut state = GLOBAL_STATE.lock().unwrap();
 
-        let render: bool = process::update::process(&mut state.bctx, msg);
-
-        return render;
+        process::update::process(&mut state.bctx, msg)
     }
 
     fn view(&self, _ctx: &Context<Self>) -> Html {
         let mut state = GLOBAL_STATE.lock().unwrap();
 
-        let page = state.bctx.page.clone();
+        let page = state.bctx.page;
 
         if page == Page::Home {
             view::home::home_view(&mut state.bctx)
@@ -276,7 +251,7 @@ impl Component for BoltApp {
     }
 }
 
-fn send_request(request: Request) {
+fn send_request(request: &Request) {
     #[derive(Debug, Serialize, Deserialize)]
     struct Payload {
         url: String,
@@ -287,14 +262,14 @@ fn send_request(request: Request) {
     }
 
     let payload = Payload {
-        url: parse_url(request.url, request.params),
+        url: parse_url(request.url.clone(), request.params.clone()),
         method: request.method,
-        body: request.body,
-        headers: request.headers,
-        index: request.request_index,
+        body: request.body.clone(),
+        headers: request.headers.clone(),
+        index: request.response.request_index,
     };
 
-    // bolt_log(&format!("{:?}", payload));
+    // _bolt_log(&format!("{:?}", payload));
 
     wasm_bindgen_futures::spawn_local(async move {
         let _resp: String = tauri::invoke("send_request", &payload).await.unwrap();
@@ -309,7 +284,7 @@ pub fn receive_response(data: &str) {
 
     let mut response: Response = serde_json::from_str(data).unwrap();
 
-    // bolt_log(&format!("{:?}", response));
+    // _bolt_log(&format!("{:?}", response));
 
     if response.response_type == ResponseType::JSON {
         response.body = format_json(&response.body);

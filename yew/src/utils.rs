@@ -59,6 +59,16 @@ pub fn _set_html(id: &str, content: String) {
     div.set_inner_html(&content);
 }
 
+pub fn _set_focus(id: &str) {
+    let window = web_sys::window().unwrap();
+    let doc = web_sys::Window::document(&window).unwrap();
+    let div = web_sys::Document::get_element_by_id(&doc, id).unwrap();
+
+    let div = div.dyn_into::<web_sys::HtmlElement>().unwrap();
+
+    div.focus().unwrap();
+}
+
 pub fn get_method() -> Method {
     let window = web_sys::window().unwrap();
     let doc = web_sys::Window::document(&window).unwrap();
@@ -68,7 +78,7 @@ pub fn get_method() -> Method {
 
     let value = select.value();
 
-    let value = match value.as_str() {
+    match value.as_str() {
         "get" => Method::GET,
         "post" => Method::POST,
         "put" => Method::PUT,
@@ -83,9 +93,7 @@ pub fn get_method() -> Method {
 
             Method::GET
         }
-    };
-
-    return value;
+    }
 }
 
 pub fn get_url() -> String {
@@ -93,11 +101,7 @@ pub fn get_url() -> String {
     let doc = web_sys::Window::document(&window).unwrap();
     let div = web_sys::Document::get_element_by_id(&doc, "urlinput").unwrap();
 
-    let input = div.dyn_into::<web_sys::HtmlInputElement>().unwrap();
-
-    let value = input.value();
-
-    return value;
+    div.dyn_into::<web_sys::HtmlInputElement>().unwrap().value()
 }
 
 pub fn get_body() -> String {
@@ -105,11 +109,7 @@ pub fn get_body() -> String {
     let doc = web_sys::Window::document(&window).unwrap();
     let div = web_sys::Document::get_element_by_id(&doc, "reqbody").unwrap();
 
-    let input = div.dyn_into::<web_sys::HtmlTextAreaElement>().unwrap();
-
-    let value = input.value();
-
-    return value;
+    div.dyn_into::<web_sys::HtmlTextAreaElement>().unwrap().value()
 }
 
 pub fn get_header(index: usize) -> Vec<String> {
@@ -128,9 +128,7 @@ pub fn get_header(index: usize) -> Vec<String> {
     let key = key.dyn_into::<web_sys::HtmlInputElement>().unwrap();
     let value = value.dyn_into::<web_sys::HtmlInputElement>().unwrap();
 
-    let result = vec![key.value(), value.value()];
-
-    return result;
+    vec![key.value(), value.value()]
 }
 
 pub fn get_param(index: usize) -> Vec<String> {
@@ -149,9 +147,7 @@ pub fn get_param(index: usize) -> Vec<String> {
     let key = key.dyn_into::<web_sys::HtmlInputElement>().unwrap();
     let value = value.dyn_into::<web_sys::HtmlInputElement>().unwrap();
 
-    let result = vec![key.value(), value.value()];
-
-    return result;
+    vec![key.value(), value.value()]
 }
 
 pub fn _switch_req_tab(index: u8) {
@@ -238,12 +234,10 @@ pub fn disable_text_selection() {
     }
 }
 
-pub fn format_json(data: &String) -> String {
+pub fn format_json(data: &str) -> String {
     let value: serde_json::Value = serde_json::from_str(data).unwrap();
 
-    let pretty = serde_json::to_string_pretty(&value).unwrap();
-
-    return pretty;
+    serde_json::to_string_pretty(&value).unwrap()
 }
 
 fn create_custom_theme() -> Theme {
@@ -260,38 +254,36 @@ fn create_custom_theme() -> Theme {
     theme
 }
 
-pub fn highlight_body(body: &String) -> String {
+pub fn highlight_body(body: &str) -> String {
     // Add syntax highlighting
     let syntax_set = SyntaxSet::load_defaults_newlines();
     let theme = create_custom_theme();
     let syntax = syntax_set.find_syntax_by_extension("json").unwrap();
 
-    let html = highlighted_html_for_string(body, &syntax_set, &syntax, &theme).unwrap();
-
-    return html;
+    highlighted_html_for_string(body, &syntax_set, syntax, &theme).unwrap()
 }
 
 pub fn parse_url(url: String, params: Vec<Vec<String>>) -> String {
     let mut new_url = url;
 
-    if params.len() > 0 && params[0][0] != "" {
-        new_url.push_str("?");
+    if !params.is_empty() && !params[0][0].is_empty() {
+        new_url.push('?');
     }
 
     for (i, param) in params.iter().enumerate() {
-        if param[0] == "" || param[1] == "" {
+        if param[0].is_empty() || param[1].is_empty() {
             continue;
         }
 
         new_url.push_str(&param[0]);
-        new_url.push_str("=");
+        new_url.push('=');
         new_url.push_str(&param[1]);
 
         if i != params.len() - 1 {
-            new_url.push_str("&");
+            new_url.push('&');
         }
     }
 
     // bolt_log(&format!("url is: {new_url}"));
-    return new_url;
+    new_url
 }

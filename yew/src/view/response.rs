@@ -9,18 +9,10 @@ use yew::{html, AttrValue, Html};
 pub fn response(bctx: &mut BoltContext) -> Html {
    let link = bctx.link.as_ref().unwrap();
 
-    let mut can_display = false;
-
-    if bctx.page == Page::Collections
-        && bctx.collections.len() > 0
-        && bctx.collections[bctx.col_current[0]].requests.len() > 0
-    {
-        can_display = true;
-    }
-
-    if bctx.page == Page::Home && bctx.main_col.requests.len() > 0 {
-        can_display = true;
-    }
+    let can_display = (bctx.page == Page::Collections
+        && !bctx.collections.is_empty()
+        && !bctx.collections[bctx.col_current[0]].requests.is_empty())
+        || (bctx.page == Page::Home && !bctx.main_col.requests.is_empty());
 
     let mut request = Request::new();
 
@@ -34,7 +26,7 @@ pub fn response(bctx: &mut BoltContext) -> Html {
 
     html! {
     <div class="resp">
-        if can_display {
+        if can_display && !request.response.failed {
         <div class="respline">
             <div class="resptabs">
                 <div id="resp_body_tab" class={if request.resp_tab == 1  {"tab pointer tabSelected"} else {"tab pointer"}} onclick={link.callback(|_| Msg::RespBodyPressed)}>{"Body"}</div>
@@ -69,6 +61,8 @@ pub fn response(bctx: &mut BoltContext) -> Html {
                 </div>
             }
         </div>
+        } else if request.response.failed {
+            <div class="resperror">{request.response.body.clone()}</div>
         }
     </div>
     }
