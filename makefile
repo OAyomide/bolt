@@ -27,7 +27,7 @@ build-yew-tauri:
 	cd yew && cp ./script.js ../tauri/dist
 	
 build-yew-cli:
-	cd yew && trunk build -d ../cli/dist --filehash false --features for-cli
+	cd yew && trunk build -d ../cli/dist --filehash false --features cli
 	cd yew && cp ./script.js ../cli/dist
 
 

@@ -16,23 +16,23 @@ use syntect::html::highlighted_html_for_string;
 use syntect::parsing::SyntaxSet;
 
 pub fn _bolt_log(log: &str) {
-    #[cfg(feature = "for-tauri")]
-    {
-        #[derive(Serialize, Deserialize)]
-        struct Payload<'a> {
-            log: &'a str,
-        }
+    // #[cfg(feature = "for-tauri")]
+    // {
+    //     #[derive(Serialize, Deserialize)]
+    //     struct Payload<'a> {
+    //         log: &'a str,
+    //     }
 
-        let log = log.to_string();
+    //     let log = log.to_string();
 
-        wasm_bindgen_futures::spawn_local(async move {
-            let _resp: String = tauri::invoke("bolt_log", &Payload { log: &log })
-                .await
-                .unwrap();
-        });
-    }
+    //     wasm_bindgen_futures::spawn_local(async move {
+    //         let _resp: String = tauri::invoke("bolt_log", &Payload { log: &log })
+    //             .await
+    //             .unwrap();
+    //     });
+    // }
 
-    #[cfg(feature = "for-cli")]
+    #[cfg(feature = "cli")]
     {
         web_sys::console::log_1(&JsValue::from_str(log));
     }
