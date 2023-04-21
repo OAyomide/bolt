@@ -1,8 +1,9 @@
-use crate::Msg;
-use crate::GLOBAL_STATE;
-use crate::SaveState;
+use wasm_bindgen::JsValue;
 use crate::BoltContext;
 use crate::Method;
+use crate::Msg;
+use crate::SaveState;
+use crate::GLOBAL_STATE;
 use serde::{Deserialize, Serialize};
 use tauri_sys::tauri;
 use wasm_bindgen::closure::Closure;
@@ -15,18 +16,26 @@ use syntect::html::highlighted_html_for_string;
 use syntect::parsing::SyntaxSet;
 
 pub fn _bolt_log(log: &str) {
-    #[derive(Serialize, Deserialize)]
-    struct Payload<'a> {
-        log: &'a str,
+    // #[cfg(feature = "for-tauri")]
+    // {
+    //     #[derive(Serialize, Deserialize)]
+    //     struct Payload<'a> {
+    //         log: &'a str,
+    //     }
+
+    //     let log = log.to_string();
+
+    //     wasm_bindgen_futures::spawn_local(async move {
+    //         let _resp: String = tauri::invoke("bolt_log", &Payload { log: &log })
+    //             .await
+    //             .unwrap();
+    //     });
+    // }
+
+    #[cfg(feature = "cli")]
+    {
+        web_sys::console::log_1(&JsValue::from_str(log));
     }
-
-    let log = log.to_string();
-
-    wasm_bindgen_futures::spawn_local(async move {
-        let _resp: String = tauri::invoke("bolt_log", &Payload { log: &log })
-            .await
-            .unwrap();
-    });
 }
 
 pub fn open_link(link: String) {
@@ -113,7 +122,9 @@ pub fn get_body() -> String {
     let doc = web_sys::Window::document(&window).unwrap();
     let div = web_sys::Document::get_element_by_id(&doc, "reqbody").unwrap();
 
-    div.dyn_into::<web_sys::HtmlTextAreaElement>().unwrap().value()
+    div.dyn_into::<web_sys::HtmlTextAreaElement>()
+        .unwrap()
+        .value()
 }
 
 pub fn get_header(index: usize) -> Vec<String> {
@@ -308,6 +319,8 @@ pub fn save_state(bctx: &mut BoltContext) {
     }
 
     let save = serde_json::to_string(&save_state).unwrap();
+
+    _bolt_log(&save);
 
     let save = Save { save };
 

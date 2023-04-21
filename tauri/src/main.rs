@@ -230,6 +230,7 @@ fn restore_state() -> String {
 
 fn main() {
     verify_home();
+    verify_state();
 
     let app = tauri::Builder::default().invoke_handler(tauri::generate_handler![
         send_request,

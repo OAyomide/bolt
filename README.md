@@ -47,6 +47,7 @@ just build # or make build
 ## Features 🚧
  * [x] Http Requests
  * [x] Collections
+ * [x] CLI
  * [ ] Testing and benchmarking
  * [ ] Websockets
  * [ ] Logging

@@ -23,6 +23,9 @@ build: build-yew build-tauri
 # Run the project
 run: build-yew watch-tauri
 
+cli: build-yew
+	cd cli && cargo run
+
 # Run the project in development mode (with hot reload)
 watch:
 	just watch-yew &
@@ -36,6 +39,9 @@ build-yew:
 # Build the backend
 build-tauri:
 	cd tauri && cargo tauri build
+
+build-cli:
+	cd cli && cargo build
 
 # Run the tauri app in development mode
 watch-tauri:

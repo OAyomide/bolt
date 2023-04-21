@@ -1,4 +1,4 @@
-.PHONY: build run setup all api watch build-yew build-tauri watch-yew watch-tauri web clean-yew clean-tauri clean
+.PHONY: build run setup all api watch build-yew build-tauri watch-yew watch-tauri web clean-yew clean-tauri clean cli build-cli
 
 all: build
 
@@ -13,16 +13,29 @@ build: build-yew build-tauri
 
 run: build-yew watch-tauri
 
+cli: build-yew
+	cd cli && cargo run
+
 watch:
 	make watch-yew &
 	make watch-tauri
 
-build-yew:
-	cd yew && trunk build -d ../tauri/dist --filehash false
+build-yew: build-yew-tauri build-yew-cli
+
+build-yew-tauri:
+	cd yew && trunk build -d ../tauri/dist --filehash false --features for-tauri
 	cd yew && cp ./script.js ../tauri/dist
+	
+build-yew-cli:
+	cd yew && trunk build -d ../cli/dist --filehash false --features cli
+	cd yew && cp ./script.js ../cli/dist
+
 
 build-tauri:
 	cd tauri && cargo tauri build
+
+build-cli:
+	cd cli && cargo build
 
 watch-tauri:
 	cargo tauri dev
