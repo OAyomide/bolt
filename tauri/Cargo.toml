@@ -1,6 +1,6 @@
 [package]
 name = "bolt-tauri"
-version = "0.9.3"
+version = "0.11.1"
 default-run = "bolt-tauri"
 edition = "2021"
 
@@ -14,6 +14,7 @@ tauri = { version = "1.2.4", features = [] }
 reqwest = { version = "0.11.14", features = ["blocking", "json"] }
 webbrowser = "0.8.3"
 lazy_static = "1.4.0"
+dirs = "4.0.0"
 
 [features]
 # this feature is used for production builds or when `devPath` points to the filesystem and the built-in dev server is disabled.
