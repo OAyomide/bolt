@@ -1,3 +1,7 @@
+use crate::Msg;
+use crate::GLOBAL_STATE;
+use crate::SaveState;
+use crate::BoltContext;
 use crate::Method;
 use serde::{Deserialize, Serialize};
 use tauri_sys::tauri;
@@ -286,4 +290,51 @@ pub fn parse_url(url: String, params: Vec<Vec<String>>) -> String {
 
     // bolt_log(&format!("url is: {new_url}"));
     new_url
+}
+
+pub fn save_state(bctx: &mut BoltContext) {
+    let save_state = SaveState {
+        page: bctx.page.clone(),
+        main_current: bctx.main_current.clone(),
+        col_current: bctx.col_current.clone(),
+
+        main_col: bctx.main_col.clone(),
+        collections: bctx.collections.clone(),
+    };
+
+    #[derive(Serialize)]
+    struct Save {
+        save: String,
+    }
+
+    let save = serde_json::to_string(&save_state).unwrap();
+
+    let save = Save { save };
+
+    wasm_bindgen_futures::spawn_local(async move {
+        let _resp: String = tauri::invoke("save_state", &save).await.unwrap();
+    });
+}
+
+pub fn restore_state() {
+    wasm_bindgen_futures::spawn_local(async move {
+        let payload = "".to_string();
+
+        let resp: String = tauri::invoke("restore_state", &payload).await.unwrap();
+
+        let new_state: SaveState = serde_json::from_str(&resp).unwrap();
+
+        let mut global_state = GLOBAL_STATE.lock().unwrap();
+
+        global_state.bctx.main_col = new_state.main_col;
+        global_state.bctx.collections = new_state.collections;
+
+        global_state.bctx.col_current = new_state.col_current;
+        global_state.bctx.main_current = new_state.main_current;
+
+        global_state.bctx.page = new_state.page;
+
+        let link = global_state.bctx.link.as_ref().unwrap();
+        link.send_message(Msg::Update);
+    });
 }

@@ -1,10 +1,12 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+mod utils;
+
 use serde::{Deserialize, Serialize};
 use std::sync::{Arc, Mutex};
-use std::time::SystemTime;
 use tauri::Window;
+use crate::utils::*;
 
 #[derive(Debug, Serialize, Deserialize, Clone, Copy, PartialEq, Eq)]
 pub enum Method {
@@ -209,36 +211,35 @@ fn prepare_request(req: HttpRequest) -> reqwest::blocking::RequestBuilder {
     return builder;
 }
 
-fn extract_headers(map: &reqwest::header::HeaderMap) -> Vec<Vec<String>> {
-    let mut headers: Vec<Vec<String>> = Vec::new();
 
-    for (key, value) in map.iter() {
-        let mut header: Vec<String> = Vec::new();
+#[tauri::command]
+fn save_state(save: &str) -> String {
+    // println!("{}", save);
+    std::fs::write(get_home() + "state.json", save).unwrap();
 
-        header.push(key.to_string());
-        header.push(value.to_str().unwrap().to_string());
+    return "done".to_string();
+}
 
-        headers.push(header);
-    }
+#[tauri::command]
+fn restore_state() -> String {
+    // println!("{}", save);
+    let state = std::fs::read_to_string(get_home() + "state.json").unwrap();
 
-    return headers;
+    return state;
 }
 
 fn main() {
-    tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![
-            send_request,
-            open_link,
-            bolt_log,
-            bolt_panic
-        ])
-        .run(tauri::generate_context!())
-        .expect("error while running tauri application");
+    verify_home();
+
+    let app = tauri::Builder::default().invoke_handler(tauri::generate_handler![
+        send_request,
+        open_link,
+        bolt_log,
+        bolt_panic,
+        save_state,
+        restore_state
+    ]);
+
+    app.run(tauri::generate_context!()).unwrap();
 }
 
-fn get_timestamp() -> u128 {
-    return SystemTime::now()
-        .duration_since(SystemTime::UNIX_EPOCH)
-        .unwrap()
-        .as_millis();
-}

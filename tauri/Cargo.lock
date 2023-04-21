@@ -103,8 +103,9 @@ dependencies = [
 
 [[package]]
 name = "bolt-tauri"
-version = "0.9.3"
+version = "0.11.1"
 dependencies = [
+ "dirs",
  "lazy_static",
  "reqwest",
  "serde",

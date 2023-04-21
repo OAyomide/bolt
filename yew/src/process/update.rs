@@ -1,3 +1,4 @@
+use crate::save_state;
 use crate::send_request;
 use crate::utils::*;
 use crate::BoltContext;
@@ -7,10 +8,9 @@ use crate::Page;
 use crate::Request;
 
 pub fn process(bctx: &mut BoltContext, msg: Msg) -> bool {
-    match msg {
-        
-        Msg::Nothing => {false}
-        
+    let should_render = match msg {
+        Msg::Nothing => false,
+
         Msg::SelectedMethod(meth) => {
             if bctx.page == Page::Home {
                 let current = bctx.main_current;
@@ -112,9 +112,7 @@ pub fn process(bctx: &mut BoltContext, msg: Msg) -> bool {
             true
         }
 
-        Msg::ReceivedResponse => {
-            true
-        }
+        Msg::ReceivedResponse => true,
 
         Msg::AddHeader => {
             if bctx.page == Page::Home {
@@ -321,19 +319,23 @@ pub fn process(bctx: &mut BoltContext, msg: Msg) -> bool {
         Msg::SelectFromCollection(col_index, req_index) => {
             bctx.col_current = vec![col_index, req_index];
 
-            bctx.collections[col_index].requests[req_index].response.request_index = req_index;
+            bctx.collections[col_index].requests[req_index]
+                .response
+                .request_index = req_index;
 
             true
         }
 
-        Msg::Update => {
-            true
-        }
+        Msg::Update => true,
 
         Msg::SwitchPage(page) => {
             bctx.page = page;
 
             true
         }
-    }
+    };
+
+    save_state(bctx);
+
+    should_render
 }
