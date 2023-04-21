@@ -1,5 +1,5 @@
 [package]
-name = "bolt-cli"
+name = "boltcli"
 version = "0.11.1"
 edition = "2021"
 authors = ["Hiro <yirohido@gmail.com>"]
@@ -10,6 +10,10 @@ homepage = "https://github.com/hiro-codes/bolt"
 repository = "https://github.com/hiro-codes/bolt"
 keywords = ["api", "cli"]
 categories = ["command-line-utilities"]
+
+[[bin]]
+name = "bolt"
+path = "src/main.rs"
 
 [dependencies]
 actix-web = "4"
