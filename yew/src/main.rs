@@ -1,9 +1,11 @@
 use crate::helpers::enums::HttpMethod as Method;
 use crate::utils::*;
-use futures::stream::StreamExt;
 use serde::{Deserialize, Serialize};
 use std::sync::{Arc, Mutex};
+
+#[cfg(feature = "for-tauri")]
 use tauri_sys::tauri;
+
 use yew::{html::Scope, Component, Context, Html};
 
 mod helpers;
@@ -283,6 +285,7 @@ fn send_request(request: &Request) {
 
     // _bolt_log(&format!("{:?}", payload));
 
+    #[cfg(feature = "for-tauri")]
     wasm_bindgen_futures::spawn_local(async move {
         let _resp: String = tauri::invoke("send_request", &payload).await.unwrap();
     });
@@ -317,6 +320,9 @@ pub fn receive_response(data: &str) {
 }
 
 fn main() {
+    _bolt_log("started running");
+
+    #[cfg(feature = "for-tauri")]
     wasm_bindgen_futures::spawn_local(async move {
         let mut events = tauri_sys::event::listen::<String>("receive_response")
             .await
@@ -327,6 +333,7 @@ fn main() {
         }
     });
 
+    #[cfg(feature = "for-tauri")]
     restore_state();
 
     yew::Renderer::<BoltApp>::new().render();

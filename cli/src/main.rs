@@ -58,6 +58,9 @@ fn main() {
     let mut args: Vec<String> = std::env::args().collect();
     args.remove(0);
 
+    #[cfg(debug_assertions)]
+    reset_home();
+
     verify_home();
     verify_dist();
 
@@ -108,18 +111,32 @@ async fn launch_server() -> std::io::Result<()> {
 
 // downloads the dist's source files from the official github repository and builds it
 pub fn build_dist() {
-    let url = "https://github.com/hiro-codes/bolt";
+    println!("Downloading static files");
 
-    println!("Downloading static files {}", url);
+    #[cfg(debug_assertions)]
+    _clone_repo_debug();
 
-    let shell_command = format!("git clone {url} --depth 1");
-    run_command(shell_command, get_home());
+    #[cfg(not(debug_assertions))]
+    _clone_repo_release();
 
     let shell_command = format!("cp -r ./dist/ ../../dist");
-    run_command(shell_command, get_home() + "bolt/tauri/");
+    run_command(shell_command, get_home() + "bolt/cli/");
 
     let shell_command = format!("cp ./bolt/icon/* ./dist/");
     run_command(shell_command, get_home());
 
     println!("Download complete");
+}
+
+fn _clone_repo_debug() {
+    let shell_command = format!("rsync -a --exclude-from=.gitignore --exclude='.git' ./ {}", get_home() + "bolt/");
+    run_command(shell_command, "../".to_string());
+}
+
+fn _clone_repo_release() {
+    let url = "https://github.com/hiro-codes/bolt";
+
+    let shell_command = format!("git clone {url} --depth 1");
+
+    run_command(shell_command, get_home());
 }
