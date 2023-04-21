@@ -36,6 +36,10 @@ cd bolt
 ```
 
 ```bash
+git checkout release
+```
+
+```bash
 just setup # or make setup
 ```
 
