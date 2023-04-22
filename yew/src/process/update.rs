@@ -25,12 +25,12 @@ pub fn process(bctx: &mut BoltContext, msg: Msg) -> bool {
 
         Msg::SendPressed => {
             if bctx.page == Page::Home {
-                let req = &bctx.main_col.requests[bctx.main_current];
-                send_request(req.clone());
+                let req = &mut bctx.main_col.requests[bctx.main_current];
+                send_request(req);
             } else {
                 let current = &bctx.col_current;
-                let req = &bctx.collections[current[0]].requests[current[1]];
-                send_request(req.clone());
+                let req = &mut bctx.collections[current[0]].requests[current[1]];
+                send_request(req);
             }
 
             true
@@ -309,9 +309,24 @@ pub fn process(bctx: &mut BoltContext, msg: Msg) -> bool {
         }
 
         Msg::SelectRequest(index) => {
-            bctx.main_current = index;
+            let mut new_index = index;
 
-            bctx.main_col.requests[index].response.request_index = index;
+            if bctx.main_col.requests.len() == 0 {
+                bctx.main_current = new_index;
+
+                // bctx.main_col.requests[new_index].response.request_index = new_index;
+            } else {
+                if index >= bctx.main_col.requests.len() {
+                    new_index = bctx.main_col.requests.len() - 1;
+                    bctx.main_current = new_index;
+
+                    bctx.main_col.requests[new_index].response.request_index = new_index;
+                } else {
+                    bctx.main_current = new_index;
+
+                    bctx.main_col.requests[new_index].response.request_index = new_index;
+                }
+            }
 
             true
         }

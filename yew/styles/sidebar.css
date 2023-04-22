@@ -49,6 +49,27 @@
 	border-bottom: 0.5px solid gray;
 }
 
+.sidebar2item {
+	z-index: 1;
+}
+
+.bin-req {
+	z-index: 2;
+}
+
+.bin-req, .bin-col, .add-col {
+	display: flex;
+	flex-direction: row;
+	justify-content: center;
+	padding: 3px;
+	border-radius: 100px;
+}
+
+.bin-req:hover, .bin-col:hover, .add-col:hover {
+	background: gray;
+}
+
+
 .sidebar2item:hover {
 	 background: rgb(23, 59, 97);
 }

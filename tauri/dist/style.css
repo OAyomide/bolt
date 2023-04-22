@@ -28,7 +28,6 @@ body {
 	background-color: rgb(3, 7, 13);
 	display: flex;
 	flex-direction: column;
-	align-items: left;
 }
 
 .requestbar {
@@ -169,6 +168,44 @@ body {
 	align-items: center;
 	justify-content: center;
 	text-align: center;
+}
+
+.resploading {
+	width: 100%;
+  height: 100%;
+	background-color: rgb(3, 7, 13);
+
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+
+}
+
+.resploading img {
+	border: 3px solid rgb(23, 59, 97);
+	border-radius: 70px;
+	padding: 20px;
+	
+	width: 80px;
+	height: 80px;
+
+	animation: rotation 1s linear infinite;
+}
+
+
+@keyframes rotation {
+  0% {
+  	transform: rotate(0deg);
+	}
+  
+  50% {
+  	transform: rotate(180deg);
+	}
+  
+  100% {
+		transform: rotate(360deg);
+  }
 }
 
 .respbody:focus {
@@ -331,7 +368,7 @@ td {
 	justify-content: center;
 	width: 20px;
 	font-size: 15px;
-	text-decoration: bold;
+	font-weight: bold;
 	border-radius: 100px;
 }
 
