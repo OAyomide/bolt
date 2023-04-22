@@ -72,7 +72,7 @@ window.addEventListener("resize", init_resize);
 
 
 function init_resize() {
-  console.log("init called");
+  // console.log("init called");
 
   const sidebar = document.querySelector(".sidebars");
   const resp = document.querySelector(".resp");
