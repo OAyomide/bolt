@@ -154,7 +154,10 @@ pub fn reset_home() {
 
     let home_path = get_home();
 
-    std::fs::remove_dir_all(home_path).unwrap(); // deletes the local copy
+    let _reset = match std::fs::remove_dir_all(home_path) {
+        Ok(_) => println!("Deleted bolt home"),
+        Err(err) => println!("could not delete Bolt home: {}", err),
+    };
 
     verify_home();
     verify_dist();
