@@ -2,22 +2,28 @@
 
 all: build
 
+# Install required build tools and dependencies
 setup:
 	cargo install tauri-cli
 	cargo install trunk
 	rustup target add wasm32-unknown-unknown
 
+# Install Bolt CLI
 install-cli:
 	cd cli && cargo install --path .
 
+# Build Bolt Desktop App
 build: build-yew-tauri build-tauri
 	cp -r ./tauri/target/release/bundle ./target
 
+# Build Bolt CLI
 build-cli: build-yew-cli
 	cd cli && cargo build --release
 
+# Run Bolt Desktop App in debug mode
 run: build-yew-tauri watch-tauri
 
+# Run Bolt CLI in debug mode
 run-cli: build-yew-cli
 	cd cli && BOLT_DEV=1 cargo run
 
@@ -37,13 +43,17 @@ build-tauri:
 watch-tauri:
 	cargo tauri dev
 
+# Clean temporary build files
+clean: clean-yew clean-tauri clean-cli clean-lib
+
 clean-yew:
 	cd yew && cargo clean
 
 clean-tauri:
 	cd tauri && cargo clean
 
-clean: clean-yew clean-tauri
+clean-cli:
+	cd cli && cargo clean
 
-api:
-	cd api && cargo run
+clean-lib:
+	cd lib_bolt && cargo clean

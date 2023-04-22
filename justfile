@@ -5,67 +5,60 @@ _default: build
 alias s := setup
 alias b := build
 alias r := run
-alias w := watch
 alias c := clean
-alias a := api
 
-# Install the dependencies
+# Install required build tools and dependencies
 setup:
 	cargo install tauri-cli
 	cargo install trunk
 	rustup target add wasm32-unknown-unknown
 
+# Install Bolt CLI
+install-cli:
+	cd cli && cargo install --path .
 
-# Build the project
-build: build-yew build-tauri
+# Build Bolt Desktop App
+build: build-yew-tauri build-tauri
 	cp -r ./tauri/target/release/bundle ./target
 
-# Run the project
-run: build-yew watch-tauri
+# Build Bolt CLI
+build-cli: build-yew-cli
+	cd cli && cargo build --release
 
-cli: build-yew
-	cd cli && cargo run
+# Run Bolt Desktop App in debug mode
+run: build-yew-tauri watch-tauri
 
-# Run the project in development mode (with hot reload)
-watch:
-	just watch-yew &
-	just watch-tauri
+# Run Bolt CLI in debug mode
+run-cli: build-yew-cli
+	cd cli && BOLT_DEV=1 cargo run
 
-# Build the frontend
-build-yew:
+build-yew: build-yew-cli build-yew-tauri
+
+build-yew-tauri:
+	cd yew && trunk build -d ../tauri/dist --filehash false
+	cd yew && cp ./script.js ../tauri/dist
+	
+build-yew-cli:
 	cd yew && trunk build -d ../tauri/dist --filehash false
 	cd yew && cp ./script.js ../tauri/dist
 
-# Build the backend
 build-tauri:
 	cd tauri && cargo tauri build
 
-build-cli:
-	cd cli && cargo build
-
-# Run the tauri app in development mode
 watch-tauri:
 	cargo tauri dev
 
-# Run the yew app in development mode
-watch-yew:
-	cd yew && trunk watch -d ../tauri/dist
+# Clean temporary build files
+clean: clean-yew clean-tauri clean-cli clean-lib
 
-# Run the frontend
-web: build-yew
-	cd ./tauri/dist && http-server -p 3000
-
-# Clean the frontend project
 clean-yew:
 	cd yew && cargo clean
 
-# Clean the backend project
 clean-tauri:
 	cd tauri && cargo clean
 
-# Clean the project
-clean: clean-yew clean-tauri
+clean-cli:
+	cd cli && cargo clean
 
-# Run the api
-api:
-	cd api && cargo run
+clean-lib:
+	cd lib_bolt && cargo clean
