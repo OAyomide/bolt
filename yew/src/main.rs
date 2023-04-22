@@ -15,7 +15,9 @@ mod view;
 
 // TODO: Copy response body button
 // TODO: Loading screen for sending requests
+// TODO: merge CLI and tauri backend
 // FIXME: request headers and params do not scroll
+// FIXME: white bars appear occassionally
 
 // Define the possible messages which can be sent to the component
 #[derive(Clone)]
@@ -241,7 +243,13 @@ impl Component for BoltApp {
     fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
         let mut state = GLOBAL_STATE.lock().unwrap();
 
-        process::update::process(&mut state.bctx, msg)
+        let should_render = process::update::process(&mut state.bctx, msg);
+
+        if should_render {
+            save_state(&mut state.bctx);
+        }
+
+        should_render
     }
 
     fn view(&self, _ctx: &Context<Self>) -> Html {
@@ -259,28 +267,19 @@ impl Component for BoltApp {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
-pub struct SendPayload {
-    url: String,
-    method: Method,
-    body: String,
-    headers: Vec<Vec<String>>,
-    index: usize,
-}
 
-fn send_request(request: &Request) {
-    let payload = SendPayload {
-        url: parse_url(request.url.clone(), request.params.clone()),
-        method: request.method,
-        body: request.body.clone(),
-        headers: request.headers.clone(),
-        index: request.response.request_index,
-    };
+fn send_request(request: Request) {
+    // let payload = SendPayload {
+    //     url: parse_url(request.url.clone(), request.params.clone()),
+    //     method: request.method,
+    //     body: request.body.clone(),
+    //     headers: request.headers.clone(),
+    //     index: request.response.request_index,
+    // };
 
     // _bolt_log(&format!("{:?}", payload));
-    invoke_send(payload);
+    invoke_send(request);
 }
-
 
 pub fn receive_response(data: &str) {
     let mut state = GLOBAL_STATE.lock().unwrap();
@@ -311,8 +310,6 @@ pub fn receive_response(data: &str) {
 }
 
 fn main() {
-    _bolt_log("started running");
-
     create_receive_listener();
 
     restore_state();

@@ -26,11 +26,11 @@ pub fn process(bctx: &mut BoltContext, msg: Msg) -> bool {
         Msg::SendPressed => {
             if bctx.page == Page::Home {
                 let req = &bctx.main_col.requests[bctx.main_current];
-                send_request(req);
+                send_request(req.clone());
             } else {
                 let current = &bctx.col_current;
                 let req = &bctx.collections[current[0]].requests[current[1]];
-                send_request(req);
+                send_request(req.clone());
             }
 
             true
@@ -334,8 +334,6 @@ pub fn process(bctx: &mut BoltContext, msg: Msg) -> bool {
             true
         }
     };
-
-    save_state(bctx);
 
     should_render
 }
