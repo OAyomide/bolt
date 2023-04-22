@@ -14,8 +14,6 @@ mod view;
 // extern "C" {}
 
 // TODO: Copy response body button
-// TODO: Loading screen for sending requests
-// TODO: merge CLI and tauri backend
 // FIXME: request headers and params do not scroll
 // FIXME: white bars appear occassionally
 
