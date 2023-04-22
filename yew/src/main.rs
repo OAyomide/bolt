@@ -2,10 +2,6 @@ use crate::helpers::enums::HttpMethod as Method;
 use crate::utils::*;
 use serde::{Deserialize, Serialize};
 use std::sync::{Arc, Mutex};
-
-#[cfg(feature = "for-tauri")]
-use tauri_sys::tauri;
-
 use yew::{html::Scope, Component, Context, Html};
 
 mod helpers;
@@ -13,8 +9,6 @@ mod process;
 mod style;
 mod utils;
 mod view;
-
-// http://localhost:2000/ping
 
 // #[wasm_bindgen(module = "/script.js")]
 // extern "C" {}
@@ -265,17 +259,17 @@ impl Component for BoltApp {
     }
 }
 
-fn send_request(request: &Request) {
-    #[derive(Debug, Serialize, Deserialize)]
-    struct Payload {
-        url: String,
-        method: Method,
-        body: String,
-        headers: Vec<Vec<String>>,
-        index: usize,
-    }
+#[derive(Debug, Serialize, Deserialize)]
+pub struct SendPayload {
+    url: String,
+    method: Method,
+    body: String,
+    headers: Vec<Vec<String>>,
+    index: usize,
+}
 
-    let payload = Payload {
+fn send_request(request: &Request) {
+    let payload = SendPayload {
         url: parse_url(request.url.clone(), request.params.clone()),
         method: request.method,
         body: request.body.clone(),
@@ -284,12 +278,9 @@ fn send_request(request: &Request) {
     };
 
     // _bolt_log(&format!("{:?}", payload));
-
-    #[cfg(feature = "for-tauri")]
-    wasm_bindgen_futures::spawn_local(async move {
-        let _resp: String = tauri::invoke("send_request", &payload).await.unwrap();
-    });
+    invoke_send(payload);
 }
+
 
 pub fn receive_response(data: &str) {
     let mut state = GLOBAL_STATE.lock().unwrap();
@@ -322,18 +313,8 @@ pub fn receive_response(data: &str) {
 fn main() {
     _bolt_log("started running");
 
-    #[cfg(feature = "for-tauri")]
-    wasm_bindgen_futures::spawn_local(async move {
-        let mut events = tauri_sys::event::listen::<String>("receive_response")
-            .await
-            .expect("could not create response listener");
+    create_receive_listener();
 
-        while let Some(event) = events.next().await {
-            receive_response(&event.payload);
-        }
-    });
-
-    #[cfg(feature = "for-tauri")]
     restore_state();
 
     yew::Renderer::<BoltApp>::new().render();

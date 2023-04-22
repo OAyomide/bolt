@@ -293,7 +293,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "bolt-cli"
+name = "boltcli"
 version = "0.11.1"
 dependencies = [
  "actix-files",
