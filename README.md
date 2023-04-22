@@ -19,7 +19,7 @@ Bolt can also be installed as a CLI app which allows you to run Bolt inside a we
 
 ### Download pre-built binaries
 
-Pre-built binaries for Windows, macOS and Linux can be found in the [latest release](https://github.com/hiro-codes/bolt/releases/latest) downloads section.
+Pre-built binaries for Windows, macOS and Linux can be found in the [latest release](https://github.com/hiro-codes/bolt/releases/latest) assets section.
 
 ### Build from source 👩‍💻
 
