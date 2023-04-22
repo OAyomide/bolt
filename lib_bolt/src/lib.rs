@@ -249,8 +249,12 @@ pub fn start(args: Vec<String>, port: u16) {
 
     args.remove(0);
 
-    #[cfg(debug_assertions)]
-    reset_home();
+    match std::env::var_os("BOLT_DEV") {
+        Some(_) => {
+            reset_home();
+        }
+        None => {}
+    }
 
     verify_home();
     verify_dist();

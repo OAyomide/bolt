@@ -56,13 +56,13 @@ pub fn build_dist() {
     println!("Downloading static files");
 
     #[cfg(debug_assertions)]
-    _clone_repo_debug();
+    _clone_repo_dev();
 
     #[cfg(not(debug_assertions))]
     _clone_repo_release();
 
     let shell_command = format!("cp -r ./dist/ ../../dist");
-    run_command(shell_command, get_home() + "bolt/cli/");
+    run_command(shell_command, get_home() + "bolt/tauri/");
 
     let shell_command = format!("cp ./bolt/icon/* ./dist/");
     run_command(shell_command, get_home());
@@ -70,7 +70,7 @@ pub fn build_dist() {
     println!("Download complete");
 }
 
-pub fn _clone_repo_debug() {
+pub fn _clone_repo_dev() {
     let shell_command = format!(
         "rsync -a --exclude-from=.gitignore --exclude='.git' ./ {}",
         get_home() + "bolt/"
