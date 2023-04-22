@@ -24,11 +24,11 @@ run-cli: build-yew-cli
 build-yew: build-yew-cli build-yew-tauri
 
 build-yew-tauri:
-	cd yew && trunk build -d ../tauri/dist --filehash false --features for-tauri
+	cd yew && trunk build -d ../tauri/dist --filehash false
 	cd yew && cp ./script.js ../tauri/dist
 	
 build-yew-cli:
-	cd yew && trunk build -d ../cli/dist --filehash false --no-default-features --features for-cli
+	cd yew && trunk build -d ../cli/dist --filehash false
 	cd yew && cp ./script.js ../cli/dist
 
 build-tauri:

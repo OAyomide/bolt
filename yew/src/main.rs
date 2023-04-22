@@ -267,17 +267,7 @@ impl Component for BoltApp {
     }
 }
 
-
 fn send_request(request: Request) {
-    // let payload = SendPayload {
-    //     url: parse_url(request.url.clone(), request.params.clone()),
-    //     method: request.method,
-    //     body: request.body.clone(),
-    //     headers: request.headers.clone(),
-    //     index: request.response.request_index,
-    // };
-
-    // _bolt_log(&format!("{:?}", payload));
     invoke_send(request);
 }
 
@@ -310,8 +300,6 @@ pub fn receive_response(data: &str) {
 }
 
 fn main() {
-    create_receive_listener();
-
     restore_state();
 
     yew::Renderer::<BoltApp>::new().render();

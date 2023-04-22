@@ -15,6 +15,7 @@ reqwest = { version = "0.11.14", features = ["blocking", "json"] }
 webbrowser = "0.8.3"
 lazy_static = "1.4.0"
 dirs = "4.0.0"
+lib_bolt = { path = "../lib_bolt" }
 
 [features]
 # this feature is used for production builds or when `devPath` points to the filesystem and the built-in dev server is disabled.
