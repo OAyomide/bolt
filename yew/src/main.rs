@@ -122,6 +122,8 @@ pub struct Request {
 
     req_tab: u8,
     resp_tab: u8,
+
+    loading: bool
 }
 
 impl Request {
@@ -140,6 +142,8 @@ impl Request {
 
             req_tab: 1,
             resp_tab: 1,
+
+            loading: false
         }
     }
 }
@@ -267,7 +271,8 @@ impl Component for BoltApp {
     }
 }
 
-fn send_request(request: Request) {
+fn send_request(request: &mut Request) {
+    request.loading = true;
     invoke_send(request);
 }
 
@@ -289,9 +294,11 @@ pub fn receive_response(data: &str) {
     if bctx.page == Page::Home {
         let current = response.request_index;
         state.bctx.main_col.requests[current].response = response;
+        state.bctx.main_col.requests[current].loading = false;
     } else {
         let current = &bctx.col_current;
         bctx.collections[current[0]].requests[current[1]].response = response;
+        bctx.collections[current[0]].requests[current[1]].loading = false;
     }
 
     let link = state.bctx.link.as_ref().unwrap();

@@ -21,7 +21,7 @@ pub fn _bolt_log(_log: &str) {
     web_sys::console::log_1(&wasm_bindgen::JsValue::from_str(_log));
 }
 
-pub fn invoke_send(request: Request) {
+pub fn invoke_send(request: &mut Request) {
     #[derive(Debug, Serialize, Clone, Deserialize)]
     pub struct SendPayload {
         url: String,
@@ -246,76 +246,6 @@ pub fn get_param(index: usize) -> Vec<String> {
     let value = value.dyn_into::<web_sys::HtmlInputElement>().unwrap();
 
     vec![key.value(), value.value()]
-}
-
-pub fn _switch_req_tab(index: u8) {
-    let window = web_sys::window().unwrap();
-    let doc = web_sys::Window::document(&window).unwrap();
-
-    let req_body_tab = web_sys::Document::get_element_by_id(&doc, "req_body_tab").unwrap();
-    let req_params_tab = web_sys::Document::get_element_by_id(&doc, "req_params_tab").unwrap();
-    let req_headers_tab = web_sys::Document::get_element_by_id(&doc, "req_headers_tab").unwrap();
-
-    match index {
-        1 => {
-            req_body_tab.class_list().add_1("tabSelected").unwrap();
-
-            req_params_tab.class_list().remove_1("tabSelected").unwrap();
-
-            req_headers_tab
-                .class_list()
-                .remove_1("tabSelected")
-                .unwrap();
-        }
-
-        2 => {
-            req_body_tab.class_list().remove_1("tabSelected").unwrap();
-
-            req_params_tab.class_list().add_1("tabSelected").unwrap();
-
-            req_headers_tab
-                .class_list()
-                .remove_1("tabSelected")
-                .unwrap();
-        }
-
-        3 => {
-            req_body_tab.class_list().remove_1("tabSelected").unwrap();
-
-            req_params_tab.class_list().remove_1("tabSelected").unwrap();
-
-            req_headers_tab.class_list().add_1("tabSelected").unwrap();
-        }
-
-        _ => {}
-    }
-}
-
-pub fn _switch_resp_tab(index: u8) {
-    let window = web_sys::window().unwrap();
-    let doc = web_sys::Window::document(&window).unwrap();
-
-    let resp_body_tab = web_sys::Document::get_element_by_id(&doc, "resp_body_tab").unwrap();
-    let resp_headers_tab = web_sys::Document::get_element_by_id(&doc, "resp_headers_tab").unwrap();
-
-    match index {
-        1 => {
-            resp_body_tab.class_list().add_1("tabSelected").unwrap();
-
-            resp_headers_tab
-                .class_list()
-                .remove_1("tabSelected")
-                .unwrap();
-        }
-
-        2 => {
-            resp_body_tab.class_list().remove_1("tabSelected").unwrap();
-
-            resp_headers_tab.class_list().add_1("tabSelected").unwrap();
-        }
-
-        _ => {}
-    }
 }
 
 // HACK: disables selecting text

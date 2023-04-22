@@ -6,8 +6,6 @@ use std::path::Path;
 use std::process::{Command, Stdio};
 use std::time::SystemTime;
 
-// TODO: use system libs for fs utils
-
 pub fn extract_headers(map: &reqwest::header::HeaderMap) -> Vec<Vec<String>> {
     let mut headers: Vec<Vec<String>> = Vec::new();
 
@@ -61,11 +59,13 @@ pub fn build_dist() {
     #[cfg(not(debug_assertions))]
     _clone_repo_release();
 
-    let shell_command = format!("cp -r ./dist/ ../../dist");
-    run_command(shell_command, get_home() + "bolt/tauri/");
+    let src = get_home() + "bolt/tauri/" + "./dist/";
+    let dst = get_home() + "bolt/tauri/" + "../../dist";
+    copy_dir(&src, &dst).unwrap();
 
-    let shell_command = format!("cp ./bolt/icon/* ./dist/");
-    run_command(shell_command, get_home());
+    let src = get_home() + "bolt/icon";
+    let dst = get_home() + "dist/icon";
+    copy_dir(&src, &dst).unwrap();
 
     println!("Download complete");
 }
@@ -75,6 +75,7 @@ pub fn _clone_repo_dev() {
         "rsync -a --exclude-from=.gitignore --exclude='.git' ./ {}",
         get_home() + "bolt/"
     );
+
     run_command(shell_command, "../".to_string());
 }
 
@@ -84,6 +85,31 @@ pub fn _clone_repo_release() {
     let shell_command = format!("git clone {url} --depth 1");
 
     run_command(shell_command, get_home());
+}
+
+fn copy_dir(src: &str, dst: &str) -> std::io::Result<()> {
+    let src = Path::new(&src);
+    let dst = Path::new(&dst);
+
+    if src.is_dir() {
+        std::fs::create_dir_all(dst)?;
+
+        for entry in std::fs::read_dir(src)? {
+            let entry = entry?;
+            let path = entry.path();
+            let new_path = dst.join(path.file_name().unwrap());
+
+            if entry.file_type()?.is_dir() {
+                copy_dir(path.to_str().unwrap(), new_path.to_str().unwrap())?;
+            } else {
+                std::fs::copy(&path, &new_path)?;
+            }
+        }
+    } else {
+        std::fs::copy(src, dst)?;
+    }
+
+    Ok(())
 }
 
 pub fn run_command(shell_command: String, dir: String) {
@@ -138,7 +164,7 @@ pub fn file_exists(path: &String) -> bool {
 }
 
 pub fn create_state(path: &String) {
-    let new_state = r#"{"page":"Home","main_current":0,"col_current":[0,0],"main_col":{"name":"New Collection ","requests":[{"url":"","body":"","headers":[["",""]],"params":[["",""]],"method":"GET","response":{"status":0,"body":"","headers":[],"time":0,"size":0,"response_type":"TEXT","request_index":0,"failed":false},"name":"New Request ","req_tab":1,"resp_tab":1}],"collapsed":false},"collections":[]}"#;
+    let new_state = r#"{"page":"Home","main_current":0,"col_current":[0,0],"main_col":{"name":"New Collection ","requests":[{"url":"","body":"","headers":[["",""]],"params":[["",""]],"method":"GET","response":{"status":0,"body":"","headers":[],"time":0,"size":0,"response_type":"TEXT","request_index":0,"failed":false},"name":"New Request 1","req_tab":1,"resp_tab":1,"loading":false}],"collapsed":false},"collections":[]}"#;
 
     std::fs::write(path, new_state).unwrap();
 }
