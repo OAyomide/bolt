@@ -6,8 +6,6 @@ use std::path::Path;
 use std::process::{Command, Stdio};
 use std::time::SystemTime;
 
-// TODO: use system libs for fs utils
-
 pub fn extract_headers(map: &reqwest::header::HeaderMap) -> Vec<Vec<String>> {
     let mut headers: Vec<Vec<String>> = Vec::new();
 
@@ -61,11 +59,13 @@ pub fn build_dist() {
     #[cfg(not(debug_assertions))]
     _clone_repo_release();
 
-    let shell_command = format!("cp -r ./dist/ ../../dist");
-    run_command(shell_command, get_home() + "bolt/tauri/");
+    let src = get_home() + "bolt/tauri/" + "./dist/";
+    let dst = get_home() + "bolt/tauri/" + "../../dist";
+    copy_dir(&src, &dst).unwrap();
 
-    let shell_command = format!("cp ./bolt/icon/* ./dist/");
-    run_command(shell_command, get_home());
+    let src = get_home() + "bolt/icon";
+    let dst = get_home() + "dist/icon";
+    copy_dir(&src, &dst).unwrap();
 
     println!("Download complete");
 }
@@ -75,6 +75,7 @@ pub fn _clone_repo_dev() {
         "rsync -a --exclude-from=.gitignore --exclude='.git' ./ {}",
         get_home() + "bolt/"
     );
+
     run_command(shell_command, "../".to_string());
 }
 
@@ -84,6 +85,31 @@ pub fn _clone_repo_release() {
     let shell_command = format!("git clone {url} --depth 1");
 
     run_command(shell_command, get_home());
+}
+
+fn copy_dir(src: &str, dst: &str) -> std::io::Result<()> {
+    let src = Path::new(&src);
+    let dst = Path::new(&dst);
+
+    if src.is_dir() {
+        std::fs::create_dir_all(dst)?;
+
+        for entry in std::fs::read_dir(src)? {
+            let entry = entry?;
+            let path = entry.path();
+            let new_path = dst.join(path.file_name().unwrap());
+
+            if entry.file_type()?.is_dir() {
+                copy_dir(path.to_str().unwrap(), new_path.to_str().unwrap())?;
+            } else {
+                std::fs::copy(&path, &new_path)?;
+            }
+        }
+    } else {
+        std::fs::copy(src, dst)?;
+    }
+
+    Ok(())
 }
 
 pub fn run_command(shell_command: String, dir: String) {
