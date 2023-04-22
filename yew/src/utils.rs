@@ -1,13 +1,17 @@
-use wasm_bindgen::JsValue;
+// use tauri_sys::tauri;
+use crate::SendPayload;
+use crate::receive_response;
 use crate::BoltContext;
 use crate::Method;
 use crate::Msg;
 use crate::SaveState;
 use crate::GLOBAL_STATE;
+use futures::stream::StreamExt;
 use serde::{Deserialize, Serialize};
 use tauri_sys::tauri;
 use wasm_bindgen::closure::Closure;
 use wasm_bindgen::JsCast;
+// use wasm_bindgen::JsValue;
 use web_sys::{EventTarget, MouseEvent};
 
 use syntect::highlighting::ThemeSet;
@@ -15,27 +19,94 @@ use syntect::highlighting::{Color, Theme};
 use syntect::html::highlighted_html_for_string;
 use syntect::parsing::SyntaxSet;
 
-pub fn _bolt_log(log: &str) {
-    // #[cfg(feature = "for-tauri")]
-    // {
-    //     #[derive(Serialize, Deserialize)]
-    //     struct Payload<'a> {
-    //         log: &'a str,
-    //     }
-
-    //     let log = log.to_string();
-
-    //     wasm_bindgen_futures::spawn_local(async move {
-    //         let _resp: String = tauri::invoke("bolt_log", &Payload { log: &log })
-    //             .await
-    //             .unwrap();
-    //     });
-    // }
-
-    #[cfg(feature = "cli")]
+pub fn _bolt_log(_log: &str) {
+    #[cfg(feature = "for-tauri")]
     {
-        web_sys::console::log_1(&JsValue::from_str(log));
+        #[derive(Serialize, Deserialize)]
+        struct Payload<'a> {
+            log: &'a str,
+        }
+
+        let log = _log.to_string();
+
+        wasm_bindgen_futures::spawn_local(async move {
+            let _resp: String = tauri::invoke("bolt_log", &Payload { log: &log })
+                .await
+                .unwrap();
+        });
     }
+
+    #[cfg(feature = "for-cli")]
+    {
+        web_sys::console::log_1(&JsValue::from_str(_log));
+    }
+}
+
+pub fn invoke_send(payload: SendPayload) {
+    wasm_bindgen_futures::spawn_local(async move {
+        let _resp: String = tauri::invoke("send_request", &payload).await.unwrap();
+    });
+}
+
+pub fn create_receive_listener() {
+    wasm_bindgen_futures::spawn_local(async move {
+        let mut events = tauri_sys::event::listen::<String>("receive_response")
+            .await
+            .expect("could not create response listener");
+
+        while let Some(event) = events.next().await {
+            receive_response(&event.payload);
+        }
+    });
+}
+
+pub fn save_state(bctx: &mut BoltContext) {
+    let save_state = SaveState {
+        page: bctx.page.clone(),
+        main_current: bctx.main_current.clone(),
+        col_current: bctx.col_current.clone(),
+
+        main_col: bctx.main_col.clone(),
+        collections: bctx.collections.clone(),
+    };
+
+    #[derive(Serialize)]
+    struct Save {
+        save: String,
+    }
+
+    let save = serde_json::to_string(&save_state).unwrap();
+
+    // _bolt_log(&save);
+
+    let save = Save { save };
+
+    wasm_bindgen_futures::spawn_local(async move {
+        let _resp: String = tauri::invoke("save_state", &save).await.unwrap();
+    });
+}
+
+pub fn restore_state() {
+    wasm_bindgen_futures::spawn_local(async move {
+        let payload = "".to_string();
+
+        let resp: String = tauri::invoke("restore_state", &payload).await.unwrap();
+
+        let new_state: SaveState = serde_json::from_str(&resp).unwrap();
+
+        let mut global_state = GLOBAL_STATE.lock().unwrap();
+
+        global_state.bctx.main_col = new_state.main_col;
+        global_state.bctx.collections = new_state.collections;
+
+        global_state.bctx.col_current = new_state.col_current;
+        global_state.bctx.main_current = new_state.main_current;
+
+        global_state.bctx.page = new_state.page;
+
+        let link = global_state.bctx.link.as_ref().unwrap();
+        link.send_message(Msg::Update);
+    });
 }
 
 pub fn open_link(link: String) {
@@ -303,51 +374,3 @@ pub fn parse_url(url: String, params: Vec<Vec<String>>) -> String {
     new_url
 }
 
-pub fn save_state(bctx: &mut BoltContext) {
-    let save_state = SaveState {
-        page: bctx.page.clone(),
-        main_current: bctx.main_current.clone(),
-        col_current: bctx.col_current.clone(),
-
-        main_col: bctx.main_col.clone(),
-        collections: bctx.collections.clone(),
-    };
-
-    #[derive(Serialize)]
-    struct Save {
-        save: String,
-    }
-
-    let save = serde_json::to_string(&save_state).unwrap();
-
-    _bolt_log(&save);
-
-    let save = Save { save };
-
-    wasm_bindgen_futures::spawn_local(async move {
-        let _resp: String = tauri::invoke("save_state", &save).await.unwrap();
-    });
-}
-
-pub fn restore_state() {
-    wasm_bindgen_futures::spawn_local(async move {
-        let payload = "".to_string();
-
-        let resp: String = tauri::invoke("restore_state", &payload).await.unwrap();
-
-        let new_state: SaveState = serde_json::from_str(&resp).unwrap();
-
-        let mut global_state = GLOBAL_STATE.lock().unwrap();
-
-        global_state.bctx.main_col = new_state.main_col;
-        global_state.bctx.collections = new_state.collections;
-
-        global_state.bctx.col_current = new_state.col_current;
-        global_state.bctx.main_current = new_state.main_current;
-
-        global_state.bctx.page = new_state.page;
-
-        let link = global_state.bctx.link.as_ref().unwrap();
-        link.send_message(Msg::Update);
-    });
-}
