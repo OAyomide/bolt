@@ -4,6 +4,7 @@ version = "0.11.1"
 edition = "2021"
 
 [features]
+default = ["for-tauri"]
 for-tauri = []
 for-cli = []
 
@@ -20,3 +21,4 @@ stylist = { version="0.12.0", features=["yew_integration"] }
 lazy_static = "1.4.0"
 json = "0.12.4"
 syntect = { version = "5.0.0", default-features = false, features = ["default-fancy"]}
+reqwest = { version = "0.11.14", features = ["blocking", "json"] }

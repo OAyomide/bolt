@@ -1,23 +1,26 @@
 // use tauri_sys::tauri;
-use crate::SendPayload;
 use crate::receive_response;
 use crate::BoltContext;
 use crate::Method;
 use crate::Msg;
+use crate::Request;
 use crate::SaveState;
+// use crate::SendPayload;
 use crate::GLOBAL_STATE;
 use futures::stream::StreamExt;
 use serde::{Deserialize, Serialize};
 use tauri_sys::tauri;
 use wasm_bindgen::closure::Closure;
 use wasm_bindgen::JsCast;
-// use wasm_bindgen::JsValue;
 use web_sys::{EventTarget, MouseEvent};
 
 use syntect::highlighting::ThemeSet;
 use syntect::highlighting::{Color, Theme};
 use syntect::html::highlighted_html_for_string;
 use syntect::parsing::SyntaxSet;
+
+#[allow(dead_code)]
+static CLI_BACKEND: &str = "http://0.0.0.0:4458/";
 
 pub fn _bolt_log(_log: &str) {
     #[cfg(feature = "for-tauri")]
@@ -38,17 +41,60 @@ pub fn _bolt_log(_log: &str) {
 
     #[cfg(feature = "for-cli")]
     {
-        web_sys::console::log_1(&JsValue::from_str(_log));
+        web_sys::console::log_1(&wasm_bindgen::JsValue::from_str(_log));
     }
 }
 
-pub fn invoke_send(payload: SendPayload) {
+pub fn invoke_send(request: Request) {
+    // let _request = request.clone();
+    // let _request2 = request.clone();
+
+    #[derive(Debug, Serialize, Clone, Deserialize)]
+    pub struct SendPayload {
+        url: String,
+        method: Method,
+        body: String,
+        headers: Vec<Vec<String>>,
+        index: usize,
+    }
+
+    let payload = SendPayload {
+        url: parse_url(request.url.clone(), request.params.clone()),
+        method: request.method,
+        body: request.body.clone(),
+        headers: request.headers.clone(),
+        index: request.response.request_index,
+    };
+
+    let _payload = payload.clone();
+
+    #[cfg(feature = "for-tauri")]
     wasm_bindgen_futures::spawn_local(async move {
-        let _resp: String = tauri::invoke("send_request", &payload).await.unwrap();
+        let _resp: String = tauri::invoke("send_request", &payload)
+            .await
+            .expect("failed to invoke send_request");
+    });
+
+    // #[cfg(feature = "for-cli")]
+    wasm_bindgen_futures::spawn_local(async move {
+        let payload = serde_json::to_string(&_payload).unwrap();
+
+        let client = reqwest::Client::new();
+
+        let res = client
+            .post(CLI_BACKEND.to_string() + "send_request")
+            .body(payload)
+            .send()
+            .await
+            .expect("send request failed");
+
+        let resp = res.text().await.unwrap();
+        crate::receive_response(&resp);
     });
 }
 
 pub fn create_receive_listener() {
+    #[cfg(feature = "for-tauri")]
     wasm_bindgen_futures::spawn_local(async move {
         let mut events = tauri_sys::event::listen::<String>("receive_response")
             .await
@@ -58,6 +104,11 @@ pub fn create_receive_listener() {
             receive_response(&event.payload);
         }
     });
+
+    // #[cfg(feature = "for-cli")]
+    // wasm_bindgen_futures::spawn_local(async move {
+    //     //
+    // });
 }
 
 pub fn save_state(bctx: &mut BoltContext) {
@@ -70,53 +121,110 @@ pub fn save_state(bctx: &mut BoltContext) {
         collections: bctx.collections.clone(),
     };
 
-    #[derive(Serialize)]
-    struct Save {
-        save: String,
-    }
+    let _save = serde_json::to_string(&save_state).unwrap();
+    let _save2 = _save.clone();
 
-    let save = serde_json::to_string(&save_state).unwrap();
-
-    // _bolt_log(&save);
-
-    let save = Save { save };
-
+    #[cfg(feature = "for-tauri")]
     wasm_bindgen_futures::spawn_local(async move {
-        let _resp: String = tauri::invoke("save_state", &save).await.unwrap();
+        #[derive(Serialize)]
+        struct Save {
+            save: String,
+        }
+        let save = Save { save: _save };
+
+        let _resp: String = tauri::invoke("save_state", &save)
+            .await
+            .expect("could not invoke save_state");
+    });
+
+    #[cfg(feature = "for-cli")]
+    wasm_bindgen_futures::spawn_local(async move {
+        let client = reqwest::Client::new();
+
+        let res = client
+            .post(CLI_BACKEND.to_string() + "save_state")
+            .body(_save2)
+            .send()
+            .await
+            .expect("save state failed");
+
+        let _resp = res.text().await.unwrap();
     });
 }
 
+fn set_save_state(state: String) {
+    let new_state: SaveState = serde_json::from_str(&state).unwrap();
+
+    let mut global_state = GLOBAL_STATE.lock().unwrap();
+
+    global_state.bctx.main_col = new_state.main_col;
+    global_state.bctx.collections = new_state.collections;
+
+    global_state.bctx.col_current = new_state.col_current;
+    global_state.bctx.main_current = new_state.main_current;
+
+    global_state.bctx.page = new_state.page;
+
+    let link = global_state.bctx.link.as_ref().unwrap();
+    link.send_message(Msg::Update);
+}
+
 pub fn restore_state() {
+    #[cfg(feature = "for-tauri")]
     wasm_bindgen_futures::spawn_local(async move {
         let payload = "".to_string();
 
-        let resp: String = tauri::invoke("restore_state", &payload).await.unwrap();
+        let resp: String = tauri::invoke("restore_state", &payload)
+            .await
+            .expect("could not invoke restore state");
 
-        let new_state: SaveState = serde_json::from_str(&resp).unwrap();
+        set_save_state(resp);
+    });
 
-        let mut global_state = GLOBAL_STATE.lock().unwrap();
+    #[cfg(feature = "for-cli")]
+    wasm_bindgen_futures::spawn_local(async move {
+        let client = reqwest::Client::new();
 
-        global_state.bctx.main_col = new_state.main_col;
-        global_state.bctx.collections = new_state.collections;
+        let res = client
+            .post(CLI_BACKEND.to_string() + "restore_state")
+            .send()
+            .await
+            .expect("restore state failed");
 
-        global_state.bctx.col_current = new_state.col_current;
-        global_state.bctx.main_current = new_state.main_current;
+        let resp = res.text().await.unwrap();
+        // _bolt_log(&text);
 
-        global_state.bctx.page = new_state.page;
-
-        let link = global_state.bctx.link.as_ref().unwrap();
-        link.send_message(Msg::Update);
+        set_save_state(resp);
     });
 }
 
 pub fn open_link(link: String) {
-    #[derive(Serialize, Deserialize)]
-    struct Payload {
-        link: String,
-    }
+    let _link = link.clone();
 
+    #[cfg(feature = "for-tauri")]
     wasm_bindgen_futures::spawn_local(async move {
-        let _resp: String = tauri::invoke("open_link", &Payload { link }).await.unwrap();
+        #[derive(Serialize, Deserialize)]
+        struct Payload {
+            link: String,
+        }
+
+        let _resp: String = tauri::invoke("open_link", &Payload { link })
+            .await
+            .expect("failed to invoke open_link");
+    });
+
+    #[cfg(feature = "for-cli")]
+    wasm_bindgen_futures::spawn_local(async move {
+        let client = reqwest::Client::new();
+
+        let res = client
+            .post(CLI_BACKEND.to_string() + "open_link")
+            .body(_link)
+            .send()
+            .await
+            .expect("open_link failed");
+
+        let _resp = res.text().await.unwrap();
     });
 }
 
@@ -373,4 +481,3 @@ pub fn parse_url(url: String, params: Vec<Vec<String>>) -> String {
     // bolt_log(&format!("url is: {new_url}"));
     new_url
 }
-
