@@ -3,5 +3,5 @@ static PORT: u16 = 3344;
 fn main() {
     let args: Vec<String> = std::env::args().collect();
 
-    lib_bolt::start(args, 3344);
+    lib_bolt::start(args, PORT);
 }

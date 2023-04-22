@@ -6,5 +6,3 @@
 * tauri cargo.toml
 * CLI main.rs
 * CLI cargo.toml
-* api cargo.toml
-

@@ -99,7 +99,7 @@ pub async fn open_link(_req: HttpRequest, body: String) -> HttpResponse {
 
 #[actix_web::post("/send_request")]
 pub async fn send_request(_req: HttpRequest, body: String) -> HttpResponse {
-    println!("sending request");
+    // println!("sending request");
 
     #[derive(Debug, Serialize, Clone, Deserialize)]
     pub struct SendPayload {

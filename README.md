@@ -5,11 +5,12 @@
 # Bolt ⚡
 Bolt is a desktop application that is designed to make the process of developing and testing APIs easier and more efficient. Like Postman, but open source and written in Rust 🦀
 
+Bolt can also be installed as a CLI app which allows you to run Bolt inside a web browser, with all the features of the Desktop app included.
+
 
 ![screenshot](https://github.com/hiro-codes/bolt/blob/master/screenshot.png?raw=true)
 
 ## Installation
-
 
 > **Warning**: Bolt is experimental software. Expect:
 > * Bugs
@@ -18,14 +19,15 @@ Bolt is a desktop application that is designed to make the process of developing
 
 ### Download pre-built binaries
 
-Pre-built binaries for Windows, macOS and Linux can be found in the [latest release](https://github.com/hiro-codes/bolt/releases/latest) downloads section.
+Pre-built binaries for Windows, macOS and Linux can be found in the [latest release](https://github.com/hiro-codes/bolt/releases/latest) assets section.
 
 ### Build from source 👩‍💻
 
 > ⚠️ Prerequisites
 > 
 > * [Rust](https://www.rust-lang.org/tools/install)
-> * [Make](https://www.gnu.org/software/make/#download) or [just](https://github.com/casey/just)
+> * [Just](https://github.com/casey/just) or [Make](https://www.gnu.org/software/make/#download)
+
 
 ```bash
 git clone https://github.com/hiro-codes/bolt
@@ -46,6 +48,37 @@ just setup # or make setup
 ```bash
 just build # or make build
 ```
+
+
+## Bolt CLI Installation
+
+```bash
+cargo install boltcli
+```
+
+### Build from source
+
+> ⚠️ Prerequisites
+> 
+> * [Rust](https://www.rust-lang.org/tools/install)
+> * [Just](https://github.com/casey/just) or [Make](https://www.gnu.org/software/make/#download)
+
+```bash
+git clone https://github.com/hiro-codes/bolt
+```
+
+```bash
+cd bolt
+```
+
+```bash
+git checkout release
+```
+
+```bash
+just install-cli # or make install-cli
+```
+
 
 
 ## Features 🚧
