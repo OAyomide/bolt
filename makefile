@@ -19,17 +19,17 @@ build-cli: build-yew-cli
 run: build-yew-tauri watch-tauri
 
 run-cli: build-yew-cli
-	cd cli && cargo run
+	cd cli && BOLT_DEV=1 cargo run
 
 build-yew: build-yew-cli build-yew-tauri
 
 build-yew-tauri:
-	cd yew && trunk build -d ../tauri/dist --filehash false --features for-tauri
+	cd yew && trunk build -d ../tauri/dist --filehash false
 	cd yew && cp ./script.js ../tauri/dist
 	
 build-yew-cli:
-	cd yew && trunk build -d ../cli/dist --filehash false --no-default-features --features for-cli
-	cd yew && cp ./script.js ../cli/dist
+	cd yew && trunk build -d ../tauri/dist --filehash false
+	cd yew && cp ./script.js ../tauri/dist
 
 build-tauri:
 	cd tauri && cargo tauri build
