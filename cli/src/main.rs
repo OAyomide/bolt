@@ -77,7 +77,7 @@ struct Request {
 }
 
 #[actix_web::get("/ping")]
-async fn ping(req: HttpRequest, _body: String) -> HttpResponse {
+async fn ping(_req: HttpRequest, _body: String) -> HttpResponse {
     let body = Ping {
         body: "pong".to_string(),
     };
@@ -123,7 +123,7 @@ pub async fn send_request(_req: HttpRequest, body: String) -> HttpResponse {
         request_index: payload.index,
     };
 
-    let resp = http_send(request);
+    let resp = http_send(request).await;
 
     let response_body = serde_json::to_string(&resp).unwrap();
 
@@ -134,7 +134,7 @@ pub async fn send_request(_req: HttpRequest, body: String) -> HttpResponse {
     return response;
 }
 
-fn http_send(mut req: Request) -> Response {
+async fn http_send(mut req: Request) -> Response {
     if !req.url.contains("http") {
         let new_url = "http://".to_string() + &req.url;
 
@@ -153,7 +153,7 @@ fn http_send(mut req: Request) -> Response {
     }
 
     let start = get_timestamp();
-    let response = request.send();
+    let response = request.send().await;
     let end = get_timestamp();
 
     let mut http_response = match response {
@@ -163,7 +163,7 @@ fn http_send(mut req: Request) -> Response {
             new_response.headers = extract_headers(resp.headers());
             new_response.status = resp.status().as_u16();
             new_response.time = (end - start) as u32;
-            new_response.body = resp.text().unwrap();
+            new_response.body = resp.text().await.unwrap();
             new_response.size = new_response.body.len() as u64;
 
             if new_response.headers.contains(&vec![
@@ -214,8 +214,8 @@ pub fn get_timestamp() -> u128 {
         .as_millis();
 }
 
-fn prepare_request(req: Request) -> reqwest::blocking::RequestBuilder {
-    let client = reqwest::blocking::Client::new();
+fn prepare_request(req: Request) -> reqwest::RequestBuilder {
+    let client = reqwest::Client::new();
 
     let builder = match req.method {
         Method::GET => client.get(req.url).body(req.body),

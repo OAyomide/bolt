@@ -1,13 +1,9 @@
-// use tauri_sys::tauri;
-use crate::receive_response;
 use crate::BoltContext;
 use crate::Method;
 use crate::Msg;
 use crate::Request;
 use crate::SaveState;
-// use crate::SendPayload;
 use crate::GLOBAL_STATE;
-use futures::stream::StreamExt;
 use serde::{Deserialize, Serialize};
 use tauri_sys::tauri;
 use wasm_bindgen::closure::Closure;
@@ -75,7 +71,7 @@ pub fn invoke_send(request: Request) {
             .expect("failed to invoke send_request");
     });
 
-    // #[cfg(feature = "for-cli")]
+    #[cfg(feature = "for-cli")]
     wasm_bindgen_futures::spawn_local(async move {
         let payload = serde_json::to_string(&_payload).unwrap();
 
@@ -100,8 +96,9 @@ pub fn create_receive_listener() {
             .await
             .expect("could not create response listener");
 
+        use futures::stream::StreamExt;
         while let Some(event) = events.next().await {
-            receive_response(&event.payload);
+            crate::receive_response(&event.payload);
         }
     });
 
