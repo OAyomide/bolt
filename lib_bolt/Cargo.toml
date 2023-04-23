@@ -2,6 +2,14 @@
 name = "lib_bolt"
 version = "0.11.5"
 edition = "2021"
+authors = ["Hiro <yirohido@gmail.com>"]
+license = "MIT"
+description = "Build and test APIs"
+homepage = "https://github.com/hiro-codes/bolt"
+repository = "https://github.com/hiro-codes/bolt"
+keywords = ["api", "cli"]
+categories = ["command-line-utilities"]
+
 
 [dependencies]
 actix-web = "4"
