@@ -62,11 +62,7 @@ pub fn build_dist() {
     let src = get_home() + "bolt/tauri/" + "./dist/";
     let dst = get_home() + "bolt/tauri/" + "../../dist";
     copy_dir(&src, &dst).unwrap();
-
-    let src = get_home() + "bolt/icon";
-    let dst = get_home() + "dist/icon";
-    copy_dir(&src, &dst).unwrap();
-
+  
     println!("Download complete");
 }
 

@@ -216,32 +216,47 @@ pub async fn e404(_req: HttpRequest) -> HttpResponse {
 }
 
 #[actix_web::main]
-pub async fn launch_server(is_tauri: bool, port: u16) -> std::io::Result<()> {
-    let _port = port.clone();
-    if !is_tauri {
-        std::thread::spawn(move || {
-            println!("opening browser");
-            open_browser("http://localhost:".to_string() + &_port.to_string());
-        });
-    }
+pub async fn launch_server(port: u16) {
+    let address = "0.0.0.0";
 
-    let app = HttpServer::new(|| {
-        let dist_path = get_dist();
-
+    let server = HttpServer::new(|| {
         App::new()
             .service(ping)
             .service(restore_state)
             .service(save_state)
             .service(send_request)
             .service(open_link)
+            .default_service(web::post().to(e404))
+    });
+
+    println!("Starting server on {} port {}", address, port);
+    server.bind((address, port)).unwrap().run().await.unwrap();
+}
+
+#[actix_web::main]
+pub async fn launch_asset_server(port: u16) {
+    let address = "0.0.0.0";
+
+    std::thread::spawn(move || {
+        println!("opening browser");
+        open_browser("http://localhost:".to_string() + &port.to_string());
+    });
+
+    let asset_server = HttpServer::new(|| {
+        let dist_path = get_dist();
+
+        App::new()
             .service(actix_files::Files::new("/", dist_path).index_file("index.html"))
             .default_service(web::post().to(e404))
     });
 
-    let address = "0.0.0.0";
-
-    println!("Starting server on {} port {}", address, port);
-    app.bind((address, port)).unwrap().run().await
+    println!("Starting asset server on {} port {}", address, port);
+    asset_server
+        .bind((address, port))
+        .unwrap()
+        .run()
+        .await
+        .unwrap();
 }
 
 pub fn start(args: Vec<String>, port: u16) {
@@ -249,24 +264,22 @@ pub fn start(args: Vec<String>, port: u16) {
 
     args.remove(0);
 
+    let mut is_tauri = false;
+    let mut launch = false;
+    let mut reset = false;
+
     match std::env::var_os("BOLT_DEV") {
         Some(_) => {
-            reset_home();
+            reset = true;
         }
         None => {}
     }
-
-    verify_home();
-    verify_dist();
-    verify_state();
-
-    let mut is_tauri = false;
 
     if args.len() > 0 {
         let flag = args[0].as_str();
 
         match flag {
-            "--reset" => reset_home(),
+            "--reset" => reset = true,
 
             "-h" | "--help" => {
                 println!("{}", HELP);
@@ -279,7 +292,7 @@ pub fn start(args: Vec<String>, port: u16) {
             "--tauri" => {
                 is_tauri = true;
 
-                launch_server(is_tauri, port).unwrap();
+                launch = true;
             }
 
             _ => {
@@ -287,6 +300,27 @@ pub fn start(args: Vec<String>, port: u16) {
             }
         }
     } else {
-        launch_server(is_tauri, port).unwrap();
+        launch = true;
+    }
+
+    if reset {
+        reset_home();
+    }
+
+    if launch {
+        verify_home();
+        verify_state();
+
+        if !is_tauri {
+            verify_dist();
+        }
+
+        if !is_tauri {
+            std::thread::spawn(move || {
+                launch_asset_server(port + 1);
+            });
+        }
+
+        launch_server(port);
     }
 }

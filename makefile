@@ -32,10 +32,14 @@ build-yew: build-yew-cli build-yew-tauri
 build-yew-tauri:
 	cd yew && trunk build -d ../tauri/dist --filehash false
 	cd yew && cp ./script.js ../tauri/dist
+	mkdir ./tauri/dist/icon/
+	cp -r ./icon/* ./tauri/dist/icon/ 
 	
 build-yew-cli:
 	cd yew && trunk build -d ../tauri/dist --filehash false
 	cd yew && cp ./script.js ../tauri/dist
+	mkdir ./tauri/dist/icon/
+	cp -r ./icon/* ./tauri/dist/icon/
 
 build-tauri:
 	cd tauri && cargo tauri build
