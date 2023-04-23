@@ -8,7 +8,7 @@ struct Ping {
     body: String,
 }
 
-static VERSION: &str = "0.11.3";
+static VERSION: &str = "0.11.5";
 static HELP: &str = r#"
 Bolt CLI (Build and test APIs)
 Usage:
@@ -18,7 +18,7 @@ Usage:
 Options:
   -h --help      Show this screen.
   -v --version   Show version.
-  --reset        Download latest dist
+  --reset        Reset dist
     "#;
 
 #[derive(Debug, Serialize, Deserialize, Clone, Copy, PartialEq, Eq)]
