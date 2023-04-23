@@ -1,9 +1,7 @@
 use crate::Method;
 use crate::Request;
-use std::io::Write;
-use std::io::{self, BufRead, BufReader};
 use std::path::Path;
-use std::process::{Command, Stdio};
+use std::process::Command;
 use std::time::SystemTime;
 
 pub fn extract_headers(map: &reqwest::header::HeaderMap) -> Vec<Vec<String>> {
@@ -62,7 +60,7 @@ pub fn build_dist() {
     let src = get_home() + "bolt/tauri/" + "./dist/";
     let dst = get_home() + "bolt/tauri/" + "../../dist";
     copy_dir(&src, &dst).unwrap();
-  
+
     println!("Download complete");
 }
 
@@ -109,36 +107,20 @@ fn copy_dir(src: &str, dst: &str) -> std::io::Result<()> {
 }
 
 pub fn run_command(shell_command: String, dir: String) {
-    let mut child = Command::new("sh")
-        .current_dir(dir)
-        .arg("-c")
-        .arg(shell_command)
-        .stdout(Stdio::piped())
-        .stderr(Stdio::piped())
-        .spawn()
-        .expect("Failed to start command");
-
-    let stdout = BufReader::new(child.stdout.take().unwrap());
-    let stderr = BufReader::new(child.stderr.take().unwrap());
-
-    let stdout_lines = stdout.lines();
-    let stderr_lines = stderr.lines();
-
-    let mut output = io::LineWriter::new(io::stdout());
-
-    for line in stdout_lines.chain(stderr_lines) {
-        if let Ok(line) = line {
-            writeln!(output, "{}", line).expect("Failed to write to stdout");
-            io::stdout().flush().expect("Failed to flush stdout");
-        } else {
-            break;
-        }
-    }
-
-    let status = child.wait().expect("Failed to wait for command");
-    if !status.success() {
-        panic!("Command failed with status: {}", status);
-    }
+    let _output = if cfg!(target_os = "windows") {
+        Command::new("cmd")
+            .args(["/C", &shell_command])
+            .current_dir(dir)
+            .output()
+            .expect(&format!("failed to execute command: {}", &shell_command))
+    } else {
+        Command::new("sh")
+            .arg("-c")
+            .arg(&shell_command)
+            .current_dir(dir)
+            .output()
+            .expect(&format!("failed to execute command: {}", &shell_command))
+    };
 }
 
 pub fn verify_state() {

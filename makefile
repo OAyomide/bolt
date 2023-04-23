@@ -47,6 +47,10 @@ build-tauri:
 watch-tauri:
 	cargo tauri dev
 
+publish:
+	cd lib_bolt && cargo publish
+	cd cli && cargo publish
+
 # Clean temporary build files
 clean: clean-yew clean-tauri clean-cli clean-lib
 

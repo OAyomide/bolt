@@ -8,13 +8,14 @@ struct Ping {
     body: String,
 }
 
-static VERSION: &str = "0.11.5";
+static VERSION: &str = "0.11.8";
 static HELP: &str = r#"
 Bolt CLI (Build and test APIs)
+
 Usage:
-  bolt-cli [OPTIONS]...
-  bolt-cli -h | --help
-  bolt-cli -v | --version
+  bolt [OPTIONS]...
+  bolt -h | --help
+  bolt -v | --version
 Options:
   -h --help      Show this screen.
   -v --version   Show version.
@@ -286,7 +287,7 @@ pub fn start(args: Vec<String>, port: u16) {
             }
 
             "-v" | "--version" => {
-                println!("thebook {}", VERSION);
+                println!("bolt {}", VERSION);
             }
 
             "--tauri" => {
