@@ -8,7 +8,7 @@ struct Ping {
     body: String,
 }
 
-static VERSION: &str = "0.11.7";
+static VERSION: &str = "0.11.8";
 static HELP: &str = r#"
 Bolt CLI (Build and test APIs)
 
