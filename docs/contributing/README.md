@@ -4,5 +4,6 @@
 * Yew cargo.toml
 * tauri.conf.json
 * tauri cargo.toml
-* CLI main.rs
 * CLI cargo.toml
+* lib_bolt lib.rs
+* lib_bolt cargo.toml

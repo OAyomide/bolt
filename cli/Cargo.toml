@@ -1,6 +1,6 @@
 [package]
 name = "boltcli"
-version = "0.11.3"
+version = "0.11.5"
 edition = "2021"
 authors = ["Hiro <yirohido@gmail.com>"]
 license = "MIT"
