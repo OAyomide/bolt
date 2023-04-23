@@ -294,7 +294,7 @@ dependencies = [
 
 [[package]]
 name = "boltcli"
-version = "0.11.6"
+version = "0.11.7"
 dependencies = [
  "actix-files",
  "actix-web",
@@ -854,7 +854,7 @@ checksum = "e2abad23fbc42b3700f2f279844dc832adb2b2eb069b2df918f455c4e18cc646"
 
 [[package]]
 name = "lib_bolt"
-version = "0.11.5"
+version = "0.11.7"
 dependencies = [
  "actix-files",
  "actix-web",
