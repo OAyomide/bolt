@@ -31,13 +31,21 @@ Pre-built binaries for Windows, macOS and Linux can be found in the [latest rele
 
 ```bash
 git clone https://github.com/hiro-codes/bolt
+```
 
+```bash
 cd bolt
+```
 
+```bash
 git checkout release
+```
 
+```bash
 just setup # or make setup
+```
 
+```bash
 just build # or make build
 ```
 
@@ -57,14 +65,28 @@ cargo install boltcli
 
 ```bash
 git clone https://github.com/hiro-codes/bolt
+```
 
+```bash
 cd bolt
+```
 
+```bash
 git checkout release
+```
 
+```bash
 just install-cli # or make install-cli
 ```
 
+
+### Usage
+
+```bash
+bolt
+```
+
+run `bolt -h` for command line options
 
 ## Features 🚧
  * [x] Http Requests
