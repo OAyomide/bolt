@@ -14,8 +14,7 @@ use syntect::highlighting::{Color, Theme};
 use syntect::html::highlighted_html_for_string;
 use syntect::parsing::SyntaxSet;
 
-#[allow(dead_code)]
-static BACKEND: &str = "http://0.0.0.0:3344/";
+static BACKEND: &str = "http://127.0.0.1:3344/";
 
 pub fn _bolt_log(_log: &str) {
     web_sys::console::log_1(&wasm_bindgen::JsValue::from_str(_log));

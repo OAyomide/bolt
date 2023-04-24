@@ -22,6 +22,8 @@ Options:
   --reset        Reset dist
     "#;
 
+static ADDRESS: &str = "127.0.0.1";
+
 #[derive(Debug, Serialize, Deserialize, Clone, Copy, PartialEq, Eq)]
 pub enum Method {
     GET,
@@ -218,8 +220,6 @@ pub async fn e404(_req: HttpRequest) -> HttpResponse {
 
 #[actix_web::main]
 pub async fn launch_server(port: u16) {
-    let address = "0.0.0.0";
-
     let server = HttpServer::new(|| {
         App::new()
             .service(ping)
@@ -230,14 +230,12 @@ pub async fn launch_server(port: u16) {
             .default_service(web::post().to(e404))
     });
 
-    println!("Starting server on {} port {}", address, port);
-    server.bind((address, port)).unwrap().run().await.unwrap();
+    println!("Starting server on {} port {}", ADDRESS, port);
+    server.bind((ADDRESS, port)).unwrap().run().await.unwrap();
 }
 
 #[actix_web::main]
 pub async fn launch_asset_server(port: u16) {
-    let address = "0.0.0.0";
-
     std::thread::spawn(move || {
         println!("opening browser");
         open_browser("http://localhost:".to_string() + &port.to_string());
@@ -251,9 +249,9 @@ pub async fn launch_asset_server(port: u16) {
             .default_service(web::post().to(e404))
     });
 
-    println!("Starting asset server on {} port {}", address, port);
+    println!("Starting asset server on {} port {}", ADDRESS, port);
     asset_server
-        .bind((address, port))
+        .bind((ADDRESS, port))
         .unwrap()
         .run()
         .await
