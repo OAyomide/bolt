@@ -163,11 +163,12 @@ async fn http_send(mut req: Request) -> Response {
             new_response.body = resp.text().await.unwrap();
             new_response.size = new_response.body.len() as u64;
 
-            if new_response.headers.contains(&vec![
-                "content-type".to_string(),
-                "application/json".to_string(),
-            ]) {
-                new_response.response_type = ResponseType::JSON;
+            for header in &new_response.headers {
+                if header[0] == "content-type" {
+                    if header[1].contains("application/json") {
+                        new_response.response_type = ResponseType::JSON;
+                    }
+                }
             }
 
             new_response
