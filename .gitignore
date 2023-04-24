@@ -2,3 +2,10 @@
 
 # Ignore all .DS_Store files
 **/.DS_Store
+
+# ignore tauri dev folders
+tauri/dist/snippets
+tauri/dist/.stage
+
+# ignore idea
+.idea
