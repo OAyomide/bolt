@@ -1,6 +1,6 @@
 [package]
 name = "boltcli"
-version = "0.11.9"
+version = "0.11.11"
 edition = "2021"
 authors = ["Hiro <yirohido@gmail.com>"]
 license = "MIT"
@@ -16,7 +16,7 @@ name = "bolt"
 path = "src/main.rs"
 
 [dependencies]
-lib_bolt = { path = "../lib_bolt", version= "0.11.9" }
+lib_bolt = { path = "../lib_bolt", version= "0.11.11" }
 actix-web = "4"
 serde_json = "1.0"
 serde = { version = "1.0", features = ["derive"] }
