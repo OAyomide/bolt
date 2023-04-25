@@ -268,7 +268,7 @@ pub fn format_json(data: &str) -> String {
 }
 
 fn create_custom_theme() -> Theme {
-    let mut theme = ThemeSet::load_defaults().themes["Solarized (dark)"].clone();
+    let mut theme = ThemeSet::load_defaults().themes["base16-eighties.dark"].clone();
 
     // Change the background color
     theme.settings.background = Some(Color {
@@ -277,19 +277,6 @@ fn create_custom_theme() -> Theme {
         b: 13,
         a: 1,
     });
-
-    let thecolor = Some(Color {
-        r: 51,
-        g: 255,
-        b: 255,
-        a: 1,
-    });
-
-    // Change font color
-    // theme.settings.foreground = thecolor;
-
-    // Change font color
-    // theme.settings.bracket_contents_foreground = thecolor;
 
     theme
 }

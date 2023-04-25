@@ -1,6 +1,6 @@
 [package]
 name = "lib_bolt"
-version = "0.11.9"
+version = "0.11.11"
 edition = "2021"
 authors = ["Hiro <yirohido@gmail.com>"]
 license = "MIT"
