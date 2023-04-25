@@ -278,6 +278,19 @@ fn create_custom_theme() -> Theme {
         a: 1,
     });
 
+    let thecolor = Some(Color {
+        r: 51,
+        g: 255,
+        b: 255,
+        a: 1,
+    });
+
+    // Change font color
+    // theme.settings.foreground = thecolor;
+
+    // Change font color
+    // theme.settings.bracket_contents_foreground = thecolor;
+
     theme
 }
 
