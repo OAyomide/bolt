@@ -63,6 +63,25 @@ window.onload = function() {
       
     }
 
+    
+    const textarea = document.getElementById("reqbody");
+
+    textarea.addEventListener("keydown", function(event) {
+      if (event.key === "Tab") {
+        event.preventDefault(); // Prevent the default behavior of Tab key
+
+        const start = this.selectionStart;
+        const end = this.selectionEnd;
+        const oldValue = this.value;
+
+        // Insert four spaces at the current cursor position
+        this.value = oldValue.substring(0, start) + "  " + oldValue.substring(end);
+
+        // Move the cursor four spaces to the right
+        this.selectionStart = this.selectionEnd = start + 4;
+      }
+    });
+  
     init_resize();    
   }, 1000);
 };
@@ -104,3 +123,4 @@ function init_resize() {
 
   resp.style.height = `${resp_size}px`;
 }
+
