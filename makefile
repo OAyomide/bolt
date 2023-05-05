@@ -10,58 +10,58 @@ setup:
 
 # Install Bolt CLI
 install-cli:
-	cd bolt-cli && cargo install --path .
+	cd bolt_cli && cargo install --path .
 
 # Build Bolt Desktop App
 build: build-yew-tauri build-tauri
-	cp -r ./bolt-tauri/target/release/bundle ./target
+	cp -r ./bolt_tauri/target/release/bundle ./target
 
 # Build Bolt CLI
 build-cli: build-yew-cli
-	cd bolt-cli && cargo build --release
+	cd bolt_cli && cargo build --release
 
 # Run Bolt Desktop App in debug mode
 run: build-yew-tauri watch-tauri
 
 # Run Bolt CLI in debug mode
 run-cli: build-yew-cli
-	cd bolt-cli && BOLT_DEV=1 cargo run
+	cd bolt_cli && BOLT_DEV=1 cargo run
 
 build-yew: build-yew-cli build-yew-tauri
 
 build-yew-tauri:
-	cd bolt-yew && trunk build -d ../bolt-tauri/dist --filehash false
-	cd bolt-yew && cp ./script.js ../bolt-tauri/dist
-	mkdir ./bolt-tauri/dist/icon/
-	cp -r ./icon/* ./bolt-tauri/dist/icon/ 
+	cd bolt_yew && trunk build -d ../bolt_tauri/dist --filehash false
+	cd bolt_yew && cp ./script.js ../bolt_tauri/dist
+	mkdir ./bolt_tauri/dist/icon/
+	cp -r ./icon/* ./bolt_tauri/dist/icon/ 
 	
 build-yew-cli:
-	cd bolt-yew && trunk build -d ../bolt-tauri/dist --filehash false
-	cd bolt-yew && cp ./script.js ../bolt-tauri/dist
-	mkdir ./bolt-tauri/dist/icon/
-	cp -r ./icon/* ./bolt-tauri/dist/icon/
+	cd bolt_yew && trunk build -d ../bolt_tauri/dist --filehash false
+	cd bolt_yew && cp ./script.js ../bolt_tauri/dist
+	mkdir ./bolt_tauri/dist/icon/
+	cp -r ./icon/* ./bolt_tauri/dist/icon/
 
 build-tauri:
-	cd bolt-tauri && cargo tauri build
+	cd bolt_tauri && cargo tauri build
 
 watch-tauri:
 	cargo tauri dev
 
 publish:
-	cd bolt-server && cargo publish
-	cd bolt-cli && cargo publish
+	cd bolt_server && cargo publish
+	cd bolt_cli && cargo publish
 
 # Clean temporary build files
-clean: clean-yew clean-tauri clean-cli clean-lib
+clean: clean_yew clean-tauri clean-cli clean-lib
 
 clean-yew:
-	cd bolt-yew && cargo clean
+	cd bolt_yew && cargo clean
 
 clean-tauri:
-	cd bolt-tauri && cargo clean
+	cd bolt_tauri && cargo clean
 
 clean-cli:
-	cd bolt-cli && cargo clean
+	cd bolt_cli && cargo clean
 
 clean-lib:
-	cd bolt-server && cargo clean
+	cd bolt_server && cargo clean

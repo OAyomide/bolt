@@ -338,7 +338,7 @@ dependencies = [
 name = "bolt-tauri"
 version = "0.11.11"
 dependencies = [
- "boltserver",
+ "bolt_core",
  "dirs",
  "lazy_static",
  "reqwest",
@@ -350,7 +350,21 @@ dependencies = [
 ]
 
 [[package]]
-name = "boltserver"
+name = "bolt_core"
+version = "0.11.11"
+dependencies = [
+ "actix-files",
+ "actix-web",
+ "bolt_http",
+ "dirs",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "webbrowser",
+]
+
+[[package]]
+name = "bolt_http"
 version = "0.11.11"
 dependencies = [
  "actix-files",

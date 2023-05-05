@@ -1,28 +1,14 @@
 mod utils;
+
+use utils::*;
+
 use actix_web::{body, http, web, App, HttpRequest, HttpResponse, HttpServer};
 use serde::{Deserialize, Serialize};
-use utils::*;
 
 #[derive(Serialize, Deserialize)]
 struct Ping {
     body: String,
 }
-
-static VERSION: &str = "0.11.11";
-static HELP: &str = r#"
-Bolt CLI (Build and test APIs)
-
-Usage:
-  bolt [OPTIONS]...
-  bolt -h | --help
-  bolt -v | --version
-Options:
-  -h --help      Show this screen.
-  -v --version   Show version.
-  --reset        Reset dist
-    "#;
-
-static ADDRESS: &str = "127.0.0.1";
 
 #[derive(Debug, Serialize, Deserialize, Clone, Copy, PartialEq, Eq)]
 pub enum Method {
@@ -220,7 +206,7 @@ pub async fn e404(_req: HttpRequest) -> HttpResponse {
 }
 
 #[actix_web::main]
-pub async fn launch_server(port: u16) {
+pub async fn launch_server(port: u16, address: String) {
     let server = HttpServer::new(|| {
         App::new()
             .service(ping)
@@ -231,12 +217,12 @@ pub async fn launch_server(port: u16) {
             .default_service(web::post().to(e404))
     });
 
-    println!("Starting server on {} port {}", ADDRESS, port);
-    server.bind((ADDRESS, port)).unwrap().run().await.unwrap();
+    println!("Starting server on {} port {}", address, port);
+    server.bind((address, port)).unwrap().run().await.unwrap();
 }
 
 #[actix_web::main]
-pub async fn launch_asset_server(port: u16) {
+pub async fn launch_asset_server(port: u16, address: String) {
     std::thread::spawn(move || {
         println!("opening browser");
         open_browser("http://localhost:".to_string() + &port.to_string());
@@ -250,77 +236,11 @@ pub async fn launch_asset_server(port: u16) {
             .default_service(web::post().to(e404))
     });
 
-    println!("Starting asset server on {} port {}", ADDRESS, port);
+    println!("Starting asset server on {} port {}", address, port);
     asset_server
-        .bind((ADDRESS, port))
+        .bind((address, port))
         .unwrap()
         .run()
         .await
         .unwrap();
-}
-
-pub fn start(args: Vec<String>, port: u16) {
-    let mut args = args;
-
-    args.remove(0);
-
-    let mut is_tauri = false;
-    let mut launch = false;
-    let mut reset = false;
-
-    match std::env::var_os("BOLT_DEV") {
-        Some(_) => {
-            reset = true;
-        }
-        None => {}
-    }
-
-    if args.len() > 0 {
-        let flag = args[0].as_str();
-
-        match flag {
-            "--reset" => reset = true,
-
-            "-h" | "--help" => {
-                println!("{}", HELP);
-            }
-
-            "-v" | "--version" => {
-                println!("bolt {}", VERSION);
-            }
-
-            "--tauri" => {
-                is_tauri = true;
-
-                launch = true;
-            }
-
-            _ => {
-                panic!("unknown flag");
-            }
-        }
-    } else {
-        launch = true;
-    }
-
-    if reset {
-        reset_home();
-    }
-
-    if launch {
-        verify_home();
-        verify_state();
-
-        if !is_tauri {
-            verify_dist();
-        }
-
-        if !is_tauri {
-            std::thread::spawn(move || {
-                launch_asset_server(port + 1);
-            });
-        }
-
-        launch_server(port);
-    }
 }
