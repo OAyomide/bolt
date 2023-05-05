@@ -1,5 +1,5 @@
 [package]
-name = "bolt-server"
+name = "boltserver"
 version = "0.11.11"
 edition = "2021"
 authors = ["Hiro <yirohido@gmail.com>"]
