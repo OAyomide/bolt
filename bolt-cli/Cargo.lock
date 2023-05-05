@@ -293,11 +293,12 @@ dependencies = [
 ]
 
 [[package]]
-name = "bolt-server"
+name = "boltcli"
 version = "0.11.11"
 dependencies = [
  "actix-files",
  "actix-web",
+ "boltserver",
  "dirs",
  "reqwest",
  "serde",
@@ -306,12 +307,11 @@ dependencies = [
 ]
 
 [[package]]
-name = "boltcli"
+name = "boltserver"
 version = "0.11.11"
 dependencies = [
  "actix-files",
  "actix-web",
- "bolt-server",
  "dirs",
  "reqwest",
  "serde",

@@ -9,7 +9,7 @@ fn launch_cli() {
     std::thread::spawn(|| {
         let args = vec!["bolt".to_string(), "--tauri".to_string()];
 
-        bolt_server::start(args, PORT);
+        boltserver::start(args, PORT);
     });
 }
 
