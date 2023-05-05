@@ -13,5 +13,6 @@ categories = ["command-line-utilities"]
 
 [dependencies]
 bolt_http = { path="../bolt_http"}
+bolt_ws = { path="../bolt_ws" }
 
 dirs = "4.0.0"

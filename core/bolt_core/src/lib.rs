@@ -19,7 +19,6 @@ Options:
 
 static ADDRESS: &str = "127.0.0.1";
 
-
 pub fn start(args: Vec<String>, port: u16) {
     let mut args = args;
 
@@ -81,6 +80,10 @@ pub fn start(args: Vec<String>, port: u16) {
                 bolt_http::launch_asset_server(port + 1, ADDRESS.to_string());
             });
         }
+
+        std::thread::spawn(move || {
+            bolt_ws::launch_server(5555, ADDRESS.to_string());
+        });
 
         bolt_http::launch_server(port, ADDRESS.to_string());
     }

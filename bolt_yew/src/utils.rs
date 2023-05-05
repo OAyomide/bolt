@@ -15,9 +15,23 @@ use syntect::html::highlighted_html_for_string;
 use syntect::parsing::SyntaxSet;
 
 static BACKEND: &str = "http://127.0.0.1:3344/";
+// static BACKEND_WS: &str = "ws://127.0.0.1:5555/";
 
-pub fn _bolt_log(_log: &str) {
-    web_sys::console::log_1(&wasm_bindgen::JsValue::from_str(_log));
+pub fn _bolt_log(log: &str) {
+    let log = log.to_string();
+
+    wasm_bindgen_futures::spawn_local(async move {
+        let client = reqwest::Client::new();
+
+        let res = client
+            .post(BACKEND.to_string() + "bolt_log")
+            .body(log)
+            .send()
+            .await
+            .expect("open_link failed");
+
+        let _resp = res.text().await.unwrap();
+    });
 }
 
 pub fn invoke_send(request: &mut Request) {

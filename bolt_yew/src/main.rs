@@ -4,6 +4,9 @@ use serde::{Deserialize, Serialize};
 use std::sync::{Arc, Mutex};
 use yew::{html::Scope, Component, Context, Html};
 
+use futures::{SinkExt, StreamExt};
+use gloo_net::websocket::{futures::WebSocket, Message};
+
 mod helpers;
 mod process;
 mod style;
@@ -15,7 +18,6 @@ mod view;
 
 // TODO: Copy response body button
 // FIXME: request headers and params do not scroll
-// FIXME: white bars appear occassionally
 
 // Define the possible messages which can be sent to the component
 #[derive(Clone)]
@@ -121,7 +123,7 @@ pub struct Request {
     req_tab: u8,
     resp_tab: u8,
 
-    loading: bool
+    loading: bool,
 }
 
 impl Request {
@@ -141,7 +143,7 @@ impl Request {
             req_tab: 1,
             resp_tab: 1,
 
-            loading: false
+            loading: false,
         }
     }
 }
@@ -177,8 +179,6 @@ pub struct BoltContext {
 
     main_col: Collection,
     collections: Vec<Collection>,
-    // resized: bool,
-    // update_save: bool,
 }
 
 #[derive(Clone, Serialize, Deserialize)]
@@ -203,8 +203,6 @@ impl BoltContext {
 
             main_current: 0,
             col_current: vec![0, 0],
-            // resized: false,
-            // update_save: false,
         }
     }
 }
@@ -227,6 +225,8 @@ lazy_static::lazy_static! {
     static ref GLOBAL_STATE: Arc<Mutex<BoltState>> = Arc::new(Mutex::new(BoltState::new()));
 }
 
+static BACKEND_WS: &str = "ws://127.0.0.1:5555/";
+
 impl Component for BoltApp {
     type Message = Msg;
     type Properties = ();
@@ -238,6 +238,25 @@ impl Component for BoltApp {
         state.bctx.link = Some(ctx.link().clone());
 
         state.bctx.main_col.requests.push(Request::new());
+
+        let mut ws = WebSocket::open(BACKEND_WS).unwrap();
+        let (mut write, mut read) = ws.split();
+
+        wasm_bindgen_futures::spawn_local(async move {
+            write
+                .send(Message::Text(String::from("ping")))
+                .await
+                .unwrap();
+        });
+
+        // state.bctx.ws = Some(write);
+
+        wasm_bindgen_futures::spawn_local(async move {
+            while let Some(msg) = read.next().await {
+                _bolt_log(&format!("1. {:?}", msg));
+            }
+            _bolt_log("WebSocket Closed");
+        });
 
         Self {}
     }

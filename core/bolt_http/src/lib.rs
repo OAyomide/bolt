@@ -1,7 +1,6 @@
 mod utils;
 
 use utils::*;
-
 use actix_web::{body, http, web, App, HttpRequest, HttpResponse, HttpServer};
 use serde::{Deserialize, Serialize};
 
@@ -78,6 +77,17 @@ async fn ping(_req: HttpRequest, _body: String) -> HttpResponse {
 #[actix_web::post("/open_link")]
 pub async fn open_link(_req: HttpRequest, body: String) -> HttpResponse {
     webbrowser::open(&body).unwrap();
+
+    let response = HttpResponse::Ok()
+        .insert_header(("Access-Control-Allow-Origin", "*"))
+        .body("done");
+
+    return response;
+}
+
+#[actix_web::post("/bolt_log")]
+pub async fn bolt_log(_req: HttpRequest, body: String) -> HttpResponse {
+    __bolt_log(body);
 
     let response = HttpResponse::Ok()
         .insert_header(("Access-Control-Allow-Origin", "*"))
@@ -214,6 +224,7 @@ pub async fn launch_server(port: u16, address: String) {
             .service(save_state)
             .service(send_request)
             .service(open_link)
+            .service(bolt_log)
             .default_service(web::post().to(e404))
     });
 
