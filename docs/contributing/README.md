@@ -1,10 +1,14 @@
 ## Contributing to Bolt
 
 ### Version bump checklist
-* Yew cargo.toml
+* Yew cargo.tomli
+
 * tauri.conf.json
 * tauri cargo.toml
+* tauri carrgo.toml -> bolt-server
+
 * CLI cargo.toml
-* CLI cargo.toml -> lib_bolt
-* lib_bolt lib.rs
-* lib_bolt cargo.toml
+* CLI cargo.toml -> bolt-server
+
+* bolt-server lib.rs
+* bolt-server cargo.toml

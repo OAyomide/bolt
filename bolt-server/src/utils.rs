@@ -57,8 +57,8 @@ pub fn build_dist() {
     #[cfg(not(debug_assertions))]
     _clone_repo_release();
 
-    let src = get_home() + "bolt/tauri/" + "./dist/";
-    let dst = get_home() + "bolt/tauri/" + "../../dist";
+    let src = get_home() + "bolt/bolt-tauri/" + "./dist/";
+    let dst = get_home() + "bolt/bolt-tauri/" + "../../dist";
     copy_dir(&src, &dst).unwrap();
 
     println!("Download complete");
