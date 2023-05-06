@@ -4,6 +4,7 @@ use crate::Msg;
 use crate::Request;
 use crate::SaveState;
 use crate::GLOBAL_STATE;
+
 use futures::SinkExt;
 use gloo_net::websocket::Message;
 use serde::{Deserialize, Serialize};
@@ -15,6 +16,10 @@ use syntect::highlighting::ThemeSet;
 use syntect::highlighting::{Color, Theme};
 use syntect::html::highlighted_html_for_string;
 use syntect::parsing::SyntaxSet;
+
+use bolt_ws::MsgType;
+use bolt_ws::PingMsg;
+use bolt_ws::ReceivedMessage;
 
 static BACKEND: &str = "http://127.0.0.1:3344/";
 // static BACKEND_WS: &str = "ws://127.0.0.1:5555/";
@@ -34,6 +39,30 @@ pub fn _bolt_log(log: &str) {
 
         let _resp = res.text().await.unwrap();
     });
+}
+
+pub fn handle_ws_message(txt: String) {
+    let rcv: Result<ReceivedMessage, serde_json::Error> = serde_json::from_str(&txt);
+
+    match rcv {
+        Ok(message) => match message.msg_type {
+            MsgType::PING => {
+                handle_ping_msg(txt);
+            }
+        },
+
+        Err(_err) => {
+            handle_invalid_msg(txt);
+        }
+    }
+}
+
+fn handle_ping_msg(_txt: String) {
+    _bolt_log(&format!("WS MSG: received pong"));
+}
+
+fn handle_invalid_msg(txt: String) {
+    _bolt_log(&format!("WS MSG: received invalid msg: {txt}"));
 }
 
 pub fn invoke_send(request: &mut Request) {
@@ -74,13 +103,16 @@ pub fn invoke_send(request: &mut Request) {
 
     wasm_bindgen_futures::spawn_local(async move {
         let mut state = GLOBAL_STATE.lock().unwrap();
-
         let write = state.bctx.ws.as_mut().unwrap();
 
-        write
-            .send(Message::Text(String::from("ping")))
-            .await
-            .unwrap();
+        let msg = PingMsg {
+            msg_type: MsgType::PING,
+            body: "piiiinggg".to_string(),
+        };
+
+        let msg = serde_json::to_string(&msg).unwrap();
+
+        write.send(Message::Text(msg)).await.unwrap();
     });
 }
 

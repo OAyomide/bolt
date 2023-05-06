@@ -4,6 +4,8 @@ version = "0.11.11"
 edition = "2021"
 
 [dependencies]
+bolt_ws = { path="../core/bolt_ws" }
+
 wasm-bindgen = "0.2"
 yew = {version = "0.20.0", features = ["csr"] }
 serde = "1.0.155"

@@ -6,7 +6,7 @@ use std::sync::{Arc, Mutex};
 use yew::{html::Scope, Component, Context, Html};
 
 use futures::StreamExt;
-use gloo_net::websocket::{futures::WebSocket, Message};
+use gloo_net::websocket::{futures::WebSocket, Message as WSMessage};
 
 mod helpers;
 mod process;
@@ -177,7 +177,7 @@ pub struct BoltContext {
 
     main_col: Collection,
     collections: Vec<Collection>,
-    ws: Option<SplitSink<gloo_net::websocket::futures::WebSocket, Message>>,
+    ws: Option<SplitSink<gloo_net::websocket::futures::WebSocket, WSMessage>>,
 }
 
 #[derive(Clone, Serialize, Deserialize)]
@@ -246,7 +246,14 @@ impl Component for BoltApp {
 
         wasm_bindgen_futures::spawn_local(async move {
             while let Some(msg) = read.next().await {
-                _bolt_log(&format!("WS: {:?}", msg));
+                let txt = msg.unwrap();
+
+                let txt = match txt {
+                    WSMessage::Text(txt) => txt,
+                    WSMessage::Bytes(_) => panic!("got bytes in txt"),
+                };
+
+                handle_ws_message(txt);
             }
             _bolt_log("WS: WebSocket Closed");
         });
