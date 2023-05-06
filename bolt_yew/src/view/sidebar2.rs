@@ -1,3 +1,6 @@
+use crate::BoltApp;
+use yew::html::Scope;
+
 use crate::BoltContext;
 use crate::Collection;
 use crate::Msg;
@@ -15,7 +18,7 @@ pub fn sidebar_requests(bctx: &mut BoltContext) -> Html {
                 </div>
             </div>
 
-            { for bctx.main_col.requests.iter().enumerate().map(|(index, req)| render_request(&mut bctx.clone(), bctx.main_current, index, req))}
+            { for bctx.main_col.requests.iter().enumerate().map(|(index, req)| render_request(bctx.link.as_ref().unwrap(), bctx.main_current, index, req))}
 
         </div>
     }
@@ -32,19 +35,19 @@ pub fn sidebar_col(bctx: &mut BoltContext) -> Html {
                 </div>
             </div>
 
-            { for bctx.collections.iter().enumerate().map(|(index, col)| render_collection(&mut bctx.clone(), index, bctx.col_current.clone(), col))}
+            { for bctx.collections.iter().enumerate().map(|(index, col)| render_collection(&mut bctx.link.as_ref().unwrap(), index, bctx.col_current.clone(), col))}
 
         </div>
     }
 }
 
 fn render_collection(
-    bctx: &mut BoltContext,
+    link: &Scope<BoltApp>,
     index: usize,
     current: Vec<usize>,
     col: &Collection,
 ) -> Html {
-    let link = bctx.link.as_ref().unwrap();
+    // let link = bctx.link.as_ref().unwrap();
 
     html! {
         <>
@@ -69,23 +72,23 @@ fn render_collection(
             </div>
         </div>
         if !col.collapsed {
-            { for col.requests.iter().enumerate().map(|(req_index, req)| render_col_request(bctx, req_index, index, current.clone(), req))}
+            { for col.requests.iter().enumerate().map(|(req_index, req)| render_col_request(link, req_index, index, current.clone(), req))}
         }
 
         </>
     }
 }
 
-fn render_request(bctx: &mut BoltContext, current: usize, index: usize, req: &Request) -> Html {
-    let link = bctx.link.as_ref().unwrap();
+fn render_request(link: &Scope<BoltApp>, current: usize, index: usize, req: &Request) -> Html {
+    // let link = bctx.link.as_ref().unwrap();
     let request_name = req.name.clone();
-    
+
     let request_name = if request_name.len() > 20 {
         format!("{}...", &request_name[0..20])
     } else {
         request_name
     };
-    
+
     html! {
         <div onclick={link.callback(move |_| Msg::SelectRequest(index))} id={"request".to_string() + &index.to_string()} class={if index == current { "pointer sidebar2item sidebar2item-selected" } else { "pointer sidebar2item" }} >
             <div class="requestname">{request_name}</div>
@@ -97,13 +100,13 @@ fn render_request(bctx: &mut BoltContext, current: usize, index: usize, req: &Re
 }
 
 fn render_col_request(
-    bctx: &mut BoltContext,
+    link: &Scope<BoltApp>,
     req_index: usize,
     col_index: usize,
     current: Vec<usize>,
     req: &Request,
 ) -> Html {
-    let link = bctx.link.as_ref().unwrap();
+    // let link = bctx.link.as_ref().unwrap();
 
     html! {
         <div id={"request".to_string() + &req_index.to_string()} class={if col_index == current[0] && req_index == current[1] { "sidebar2item-child sidebar2item-selected" } else { "sidebar2item-child" }} >

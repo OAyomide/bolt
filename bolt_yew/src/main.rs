@@ -169,7 +169,7 @@ pub struct BoltState {
     bctx: BoltContext,
 }
 
-#[derive(Clone)]
+// #[derive(Clone)]
 pub struct BoltContext {
     link: Option<Scope<BoltApp>>,
 
@@ -179,6 +179,7 @@ pub struct BoltContext {
 
     main_col: Collection,
     collections: Vec<Collection>,
+    ws: Option<WebSocket>,
 }
 
 #[derive(Clone, Serialize, Deserialize)]
@@ -203,12 +204,13 @@ impl BoltContext {
 
             main_current: 0,
             col_current: vec![0, 0],
+            ws: None,
         }
     }
 }
 
-unsafe impl Sync for BoltApp {}
-unsafe impl Send for BoltApp {}
+// unsafe impl Sync for BoltApp {}
+// unsafe impl Send for BoltApp {}
 unsafe impl Sync for BoltState {}
 unsafe impl Send for BoltState {}
 
@@ -239,24 +241,26 @@ impl Component for BoltApp {
 
         state.bctx.main_col.requests.push(Request::new());
 
-        let mut ws = WebSocket::open(BACKEND_WS).unwrap();
-        let (mut write, mut read) = ws.split();
+        let ws = WebSocket::open(BACKEND_WS).unwrap();
+        // let (mut write, mut read) = ws.split();
 
-        wasm_bindgen_futures::spawn_local(async move {
-            write
-                .send(Message::Text(String::from("ping")))
-                .await
-                .unwrap();
-        });
+        state.bctx.ws = Some(ws);
 
-        // state.bctx.ws = Some(write);
+        // wasm_bindgen_futures::spawn_local(async move {
+        //     write
+        //         .send(Message::Text(String::from("ping")))
+        //         .await
+        //         .unwrap();
+        // });
 
-        wasm_bindgen_futures::spawn_local(async move {
-            while let Some(msg) = read.next().await {
-                _bolt_log(&format!("1. {:?}", msg));
-            }
-            _bolt_log("WebSocket Closed");
-        });
+        // wasm_bindgen_futures::spawn_local(async move {
+        // let (mut write, mut read) = state.bctx.ws.unwrap().split();
+
+        //     while let Some(msg) = read.next().await {
+        //         _bolt_log(&format!("WS: {:?}", msg));
+        //     }
+        //     _bolt_log("WebSocket Closed");
+        // });
 
         Self {}
     }
