@@ -1,10 +1,11 @@
 use crate::helpers::enums::HttpMethod as Method;
 use crate::utils::*;
+use futures::stream::SplitSink;
 use serde::{Deserialize, Serialize};
 use std::sync::{Arc, Mutex};
 use yew::{html::Scope, Component, Context, Html};
 
-use futures::{SinkExt, StreamExt};
+use futures::StreamExt;
 use gloo_net::websocket::{futures::WebSocket, Message};
 
 mod helpers;
@@ -12,9 +13,6 @@ mod process;
 mod style;
 mod utils;
 mod view;
-
-// #[wasm_bindgen(module = "/script.js")]
-// extern "C" {}
 
 // TODO: Copy response body button
 // FIXME: request headers and params do not scroll
@@ -179,7 +177,7 @@ pub struct BoltContext {
 
     main_col: Collection,
     collections: Vec<Collection>,
-    ws: Option<WebSocket>,
+    ws: Option<SplitSink<gloo_net::websocket::futures::WebSocket, Message>>,
 }
 
 #[derive(Clone, Serialize, Deserialize)]
@@ -242,25 +240,16 @@ impl Component for BoltApp {
         state.bctx.main_col.requests.push(Request::new());
 
         let ws = WebSocket::open(BACKEND_WS).unwrap();
-        // let (mut write, mut read) = ws.split();
+        let (write, mut read) = ws.split();
 
-        state.bctx.ws = Some(ws);
+        state.bctx.ws = Some(write);
 
-        // wasm_bindgen_futures::spawn_local(async move {
-        //     write
-        //         .send(Message::Text(String::from("ping")))
-        //         .await
-        //         .unwrap();
-        // });
-
-        // wasm_bindgen_futures::spawn_local(async move {
-        // let (mut write, mut read) = state.bctx.ws.unwrap().split();
-
-        //     while let Some(msg) = read.next().await {
-        //         _bolt_log(&format!("WS: {:?}", msg));
-        //     }
-        //     _bolt_log("WebSocket Closed");
-        // });
+        wasm_bindgen_futures::spawn_local(async move {
+            while let Some(msg) = read.next().await {
+                _bolt_log(&format!("WS: {:?}", msg));
+            }
+            _bolt_log("WS: WebSocket Closed");
+        });
 
         Self {}
     }

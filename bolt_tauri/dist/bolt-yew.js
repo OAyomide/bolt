@@ -269,6 +269,10 @@ function handleError(f, args) {
     }
 }
 
+function getArrayU8FromWasm0(ptr, len) {
+    return getUint8Memory0().subarray(ptr / 1, ptr / 1 + len);
+}
+
 async function load(module, imports) {
     if (typeof Response === 'function' && module instanceof Response) {
         if (typeof WebAssembly.instantiateStreaming === 'function') {
@@ -485,6 +489,10 @@ function getImports() {
         const ret = getObject(arg0).text();
         return addHeapObject(ret);
     }, arguments) };
+    imports.wbg.__wbg_readyState_b3671943d2cedc2b = function(arg0) {
+        const ret = getObject(arg0).readyState;
+        return ret;
+    };
     imports.wbg.__wbg_setbinaryType_c9b2fa398c277601 = function(arg0, arg1) {
         getObject(arg0).binaryType = takeObject(arg1);
     };
@@ -494,6 +502,12 @@ function getImports() {
     }, arguments) };
     imports.wbg.__wbg_close_546591d4b4350b36 = function() { return handleError(function (arg0) {
         getObject(arg0).close();
+    }, arguments) };
+    imports.wbg.__wbg_send_36f8bcb566f8afa0 = function() { return handleError(function (arg0, arg1, arg2) {
+        getObject(arg0).send(getStringFromWasm0(arg1, arg2));
+    }, arguments) };
+    imports.wbg.__wbg_send_c1c0838681688262 = function() { return handleError(function (arg0, arg1, arg2) {
+        getObject(arg0).send(getArrayU8FromWasm0(arg1, arg2));
     }, arguments) };
     imports.wbg.__wbg_new_f1c3a9c2533a55b8 = function() { return handleError(function () {
         const ret = new Headers();
@@ -869,32 +883,32 @@ function getImports() {
         const ret = wasm.memory;
         return addHeapObject(ret);
     };
-    imports.wbg.__wbindgen_closure_wrapper461 = function(arg0, arg1, arg2) {
-        const ret = makeMutClosure(arg0, arg1, 75, __wbg_adapter_28);
+    imports.wbg.__wbindgen_closure_wrapper498 = function(arg0, arg1, arg2) {
+        const ret = makeMutClosure(arg0, arg1, 88, __wbg_adapter_28);
         return addHeapObject(ret);
     };
-    imports.wbg.__wbindgen_closure_wrapper17179 = function(arg0, arg1, arg2) {
-        const ret = makeMutClosure(arg0, arg1, 1036, __wbg_adapter_31);
+    imports.wbg.__wbindgen_closure_wrapper17156 = function(arg0, arg1, arg2) {
+        const ret = makeMutClosure(arg0, arg1, 1041, __wbg_adapter_31);
         return addHeapObject(ret);
     };
-    imports.wbg.__wbindgen_closure_wrapper17181 = function(arg0, arg1, arg2) {
-        const ret = makeMutClosure(arg0, arg1, 1038, __wbg_adapter_34);
+    imports.wbg.__wbindgen_closure_wrapper17158 = function(arg0, arg1, arg2) {
+        const ret = makeMutClosure(arg0, arg1, 1043, __wbg_adapter_34);
         return addHeapObject(ret);
     };
-    imports.wbg.__wbindgen_closure_wrapper17183 = function(arg0, arg1, arg2) {
-        const ret = makeMutClosure(arg0, arg1, 1034, __wbg_adapter_37);
+    imports.wbg.__wbindgen_closure_wrapper17160 = function(arg0, arg1, arg2) {
+        const ret = makeMutClosure(arg0, arg1, 1039, __wbg_adapter_37);
         return addHeapObject(ret);
     };
-    imports.wbg.__wbindgen_closure_wrapper17185 = function(arg0, arg1, arg2) {
-        const ret = makeMutClosure(arg0, arg1, 1032, __wbg_adapter_40);
+    imports.wbg.__wbindgen_closure_wrapper17162 = function(arg0, arg1, arg2) {
+        const ret = makeMutClosure(arg0, arg1, 1037, __wbg_adapter_40);
         return addHeapObject(ret);
     };
-    imports.wbg.__wbindgen_closure_wrapper17414 = function(arg0, arg1, arg2) {
-        const ret = makeMutClosure(arg0, arg1, 1068, __wbg_adapter_43);
+    imports.wbg.__wbindgen_closure_wrapper17397 = function(arg0, arg1, arg2) {
+        const ret = makeMutClosure(arg0, arg1, 1084, __wbg_adapter_43);
         return addHeapObject(ret);
     };
-    imports.wbg.__wbindgen_closure_wrapper17578 = function(arg0, arg1, arg2) {
-        const ret = makeMutClosure(arg0, arg1, 1083, __wbg_adapter_46);
+    imports.wbg.__wbindgen_closure_wrapper17538 = function(arg0, arg1, arg2) {
+        const ret = makeMutClosure(arg0, arg1, 1097, __wbg_adapter_46);
         return addHeapObject(ret);
     };
 

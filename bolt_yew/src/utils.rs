@@ -4,6 +4,8 @@ use crate::Msg;
 use crate::Request;
 use crate::SaveState;
 use crate::GLOBAL_STATE;
+use futures::SinkExt;
+use gloo_net::websocket::Message;
 use serde::{Deserialize, Serialize};
 use wasm_bindgen::closure::Closure;
 use wasm_bindgen::JsCast;
@@ -68,6 +70,17 @@ pub fn invoke_send(request: &mut Request) {
 
         let resp = res.text().await.unwrap();
         crate::receive_response(&resp);
+    });
+
+    wasm_bindgen_futures::spawn_local(async move {
+        let mut state = GLOBAL_STATE.lock().unwrap();
+
+        let write = state.bctx.ws.as_mut().unwrap();
+
+        write
+            .send(Message::Text(String::from("ping")))
+            .await
+            .unwrap();
     });
 }
 

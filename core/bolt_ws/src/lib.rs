@@ -30,7 +30,7 @@ struct PingMsg {
 }
 
 fn process_message(websocket: &mut WebSocket<TcpStream>, msg: Message) {
-    println!("new message");
+    println!("WS SESSION: new message");
 
     if msg.is_text() {
         let txt = msg.into_text().unwrap();
@@ -49,12 +49,11 @@ fn process_message(websocket: &mut WebSocket<TcpStream>, msg: Message) {
             }
         }
     } else {
-        panic!("message is not text");
     }
 }
 
 fn handle_ping(websocket: &mut WebSocket<TcpStream>, _txt: String) {
-    println!("received ping");
+    println!("WS SESSION: received ping");
 
     let msg = PingMsg {
         msg_type: MsgType::PING,
@@ -67,15 +66,14 @@ fn handle_ping(websocket: &mut WebSocket<TcpStream>, _txt: String) {
 }
 
 fn handle_invalid(websocket: &mut WebSocket<TcpStream>, _txt: String) {
-    println!("received invalid");
+    println!("WS SESSION: received invalid");
 
     let response = Message::Text("that was invalid".to_string());
     websocket.write_message(response).unwrap();
 }
 
 fn process_connection(req: &Request, mut response: Response) -> Response {
-    println!("Received a new ws handshake");
-    println!("The request's path is: {}", req.uri().path());
+    println!("WS: new session with path: {}", req.uri().path());
 
     // println!("The request's headers are:");
     // for (ref header, _value) in req.headers() {
@@ -84,12 +82,13 @@ fn process_connection(req: &Request, mut response: Response) -> Response {
 
     let headers = response.headers_mut();
     headers.append("MyCustomHeader", ":)".parse().unwrap());
-    // headers.append("SOME_TUNGSTENITE_HEADER", "header_value".parse().unwrap());
 
     response
 }
 
 pub fn launch_server(port: u16, address: String) {
+    println!("Starting WS server on {} port {}", address, port);
+
     let server = TcpListener::bind(address + ":" + &port.to_string()).unwrap();
 
     for stream in server.incoming() {
@@ -103,9 +102,19 @@ pub fn launch_server(port: u16, address: String) {
             let mut websocket = accept_hdr(stream.unwrap(), callback).unwrap();
 
             loop {
-                let msg = websocket.read_message().unwrap();
+                let msg = websocket.read_message();
 
-                process_message(&mut websocket, msg);
+                match msg {
+                    Ok(msg) => {
+                        process_message(&mut websocket, msg);
+                    }
+
+                    Err(err) => {
+                        println!("WS SESSION: {err}");
+
+                        return;
+                    }
+                }
             }
         });
     }

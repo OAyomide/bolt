@@ -14,7 +14,7 @@ Usage:
 Options:
   -h --help      Show this screen.
   -v --version   Show version.
-  --reset        Reset dist
+  --reset        Reset static files
     "#;
 
 static ADDRESS: &str = "127.0.0.1";
@@ -25,6 +25,7 @@ pub fn start(args: Vec<String>, port: u16) {
     args.remove(0);
 
     let mut is_tauri = false;
+    let mut is_headless = false;
     let mut launch = false;
     let mut reset = false;
 
@@ -55,6 +56,12 @@ pub fn start(args: Vec<String>, port: u16) {
                 launch = true;
             }
 
+            "--headless" => {
+                is_headless = true;
+
+                launch = true;
+            }
+
             _ => {
                 panic!("unknown flag");
             }
@@ -75,7 +82,7 @@ pub fn start(args: Vec<String>, port: u16) {
             verify_dist();
         }
 
-        if !is_tauri {
+        if !is_tauri && !is_headless {
             std::thread::spawn(move || {
                 bolt_http::launch_asset_server(port + 1, ADDRESS.to_string());
             });

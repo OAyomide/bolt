@@ -1,8 +1,8 @@
 mod utils;
 
-use utils::*;
 use actix_web::{body, http, web, App, HttpRequest, HttpResponse, HttpServer};
 use serde::{Deserialize, Serialize};
+use utils::*;
 
 #[derive(Serialize, Deserialize)]
 struct Ping {
@@ -228,7 +228,7 @@ pub async fn launch_server(port: u16, address: String) {
             .default_service(web::post().to(e404))
     });
 
-    println!("Starting server on {} port {}", address, port);
+    println!("Starting REST server on {} port {}", address, port);
     server.bind((address, port)).unwrap().run().await.unwrap();
 }
 
