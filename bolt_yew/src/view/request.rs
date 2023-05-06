@@ -1,15 +1,14 @@
 // use web_sys::InputEvent;
-use yew::KeyboardEvent;
+use crate::helpers::enums::RequestTabs::{self, Body, Headers, Params};
 use crate::view;
 use crate::BoltContext;
 use crate::Msg;
 use crate::Page;
 use crate::Request;
+use yew::KeyboardEvent;
 use yew::{html, Html};
-use crate::helpers::enums::{
-    RequestTabs::{self, Body, Params, Headers},
-    HttpMethod,
-};
+
+use bolt_ws::prelude::HttpMethod;
 
 pub fn request(bctx: &mut BoltContext) -> Html {
     let link = bctx.link.as_ref().unwrap();

@@ -1,13 +1,13 @@
 use crate::BoltContext;
-use crate::Method;
 use crate::Msg;
 use crate::Request;
 use crate::SaveState;
+use crate::BACKEND;
 use crate::GLOBAL_STATE;
 
 use futures::SinkExt;
 use gloo_net::websocket::Message;
-use serde::{Deserialize, Serialize};
+use crate::receive_response;
 use wasm_bindgen::closure::Closure;
 use wasm_bindgen::JsCast;
 use web_sys::{EventTarget, MouseEvent};
@@ -17,27 +17,64 @@ use syntect::highlighting::{Color, Theme};
 use syntect::html::highlighted_html_for_string;
 use syntect::parsing::SyntaxSet;
 
-use bolt_ws::MsgType;
-use bolt_ws::PingMsg;
-use bolt_ws::ReceivedMessage;
-
-static BACKEND: &str = "http://127.0.0.1:3344/";
-// static BACKEND_WS: &str = "ws://127.0.0.1:5555/";
+use bolt_ws::prelude::*;
 
 pub fn _bolt_log(log: &str) {
     let log = log.to_string();
 
+    let msg = LogMsg {
+        msg_type: MsgType::LOG,
+        log,
+    };
+
+    let msg = serde_json::to_string(&msg).unwrap();
+
+    ws_write(msg);
+}
+
+pub fn bolt_panic(log: &str) {
+    let log = log.to_string();
+
+    let msg = PanicMsg {
+        msg_type: MsgType::PANIC,
+        log: log.clone(),
+    };
+
+    let msg = serde_json::to_string(&msg).unwrap();
+
+    ws_write(msg);
+
+    panic!("{}", log);
+}
+
+pub fn open_link(link: String) {
+    let msg = OpenLinkMsg {
+        msg_type: MsgType::OPEN_LINK,
+        link,
+    };
+
+    let msg = serde_json::to_string(&msg).unwrap();
+
+    ws_write(msg);
+}
+
+pub fn send_ping() {
+    let msg = PingMsg {
+        msg_type: MsgType::PING,
+        body: "piiiinggg".to_string(),
+    };
+
+    let msg = serde_json::to_string(&msg).unwrap();
+
+    ws_write(msg);
+}
+
+pub fn ws_write(msg: String) {
     wasm_bindgen_futures::spawn_local(async move {
-        let client = reqwest::Client::new();
+        let mut state = GLOBAL_STATE.lock().unwrap();
+        let write = state.bctx.ws_tx.as_mut().unwrap();
 
-        let res = client
-            .post(BACKEND.to_string() + "bolt_log")
-            .body(log)
-            .send()
-            .await
-            .expect("open_link failed");
-
-        let _resp = res.text().await.unwrap();
+        write.send(Message::Text(msg)).await.unwrap();
     });
 }
 
@@ -49,6 +86,18 @@ pub fn handle_ws_message(txt: String) {
             MsgType::PING => {
                 handle_ping_msg(txt);
             }
+
+            MsgType::SEND_HTTP
+            | MsgType::SAVE_STATE
+            | MsgType::LOG
+            | MsgType::PANIC
+            | MsgType::OPEN_LINK => {
+                return;
+            }
+
+            MsgType::HTTP_RESPONSE => {
+                handle_http_response_msg(txt);
+            }
         },
 
         Err(_err) => {
@@ -57,25 +106,24 @@ pub fn handle_ws_message(txt: String) {
     }
 }
 
+
+fn handle_http_response_msg(txt: String) {
+    // _bolt_log(&format!("received response"));
+
+    receive_response(txt);
+}
+
 fn handle_ping_msg(_txt: String) {
-    _bolt_log(&format!("WS MSG: received pong"));
+    _bolt_log(&format!("received pong"));
 }
 
 fn handle_invalid_msg(txt: String) {
-    _bolt_log(&format!("WS MSG: received invalid msg: {txt}"));
+    _bolt_log(&format!("received invalid msg: {txt}"));
 }
 
 pub fn invoke_send(request: &mut Request) {
-    #[derive(Debug, Serialize, Clone, Deserialize)]
-    pub struct SendPayload {
-        url: String,
-        method: Method,
-        body: String,
-        headers: Vec<Vec<String>>,
-        index: usize,
-    }
-
-    let payload = SendPayload {
+    let msg = SendHttpMsg {
+        msg_type: MsgType::SEND_HTTP,
         url: parse_url(request.url.clone(), request.params.clone()),
         method: request.method,
         body: request.body.clone(),
@@ -83,37 +131,11 @@ pub fn invoke_send(request: &mut Request) {
         index: request.response.request_index,
     };
 
-    let _payload = payload.clone();
+    let msg = serde_json::to_string(&msg).unwrap();
 
-    wasm_bindgen_futures::spawn_local(async move {
-        let payload = serde_json::to_string(&_payload).unwrap();
+    ws_write(msg);
 
-        let client = reqwest::Client::new();
-
-        let res = client
-            .post(BACKEND.to_string() + "send_request")
-            .body(payload)
-            .send()
-            .await
-            .expect("send request failed");
-
-        let resp = res.text().await.unwrap();
-        crate::receive_response(&resp);
-    });
-
-    wasm_bindgen_futures::spawn_local(async move {
-        let mut state = GLOBAL_STATE.lock().unwrap();
-        let write = state.bctx.ws.as_mut().unwrap();
-
-        let msg = PingMsg {
-            msg_type: MsgType::PING,
-            body: "piiiinggg".to_string(),
-        };
-
-        let msg = serde_json::to_string(&msg).unwrap();
-
-        write.send(Message::Text(msg)).await.unwrap();
-    });
+    send_ping();
 }
 
 pub fn save_state(bctx: &mut BoltContext) {
@@ -126,21 +148,16 @@ pub fn save_state(bctx: &mut BoltContext) {
         collections: bctx.collections.clone(),
     };
 
-    let _save = serde_json::to_string(&save_state).unwrap();
-    let _save2 = _save.clone();
+    let save = serde_json::to_string(&save_state).unwrap();
 
-    wasm_bindgen_futures::spawn_local(async move {
-        let client = reqwest::Client::new();
+    let msg = SaveStateMsg {
+        msg_type: MsgType::SAVE_STATE,
+        save,
+    };
 
-        let res = client
-            .post(BACKEND.to_string() + "save_state")
-            .body(_save2)
-            .send()
-            .await
-            .expect("save state failed");
+    let msg = serde_json::to_string(&msg).unwrap();
 
-        let _resp = res.text().await.unwrap();
-    });
+    ws_write(msg);
 }
 
 fn set_save_state(state: String) {
@@ -177,34 +194,6 @@ pub fn restore_state() {
     });
 }
 
-pub fn open_link(link: String) {
-    let _link = link.clone();
-
-    wasm_bindgen_futures::spawn_local(async move {
-        let client = reqwest::Client::new();
-
-        let res = client
-            .post(BACKEND.to_string() + "open_link")
-            .body(_link)
-            .send()
-            .await
-            .expect("open_link failed");
-
-        let _resp = res.text().await.unwrap();
-    });
-}
-
-pub fn bolt_panic(log: &str) {
-    #[derive(Serialize, Deserialize)]
-    struct Payload<'a> {
-        log: &'a str,
-    }
-
-    let log = log.to_string();
-
-    panic!("{}", log);
-}
-
 pub fn _set_html(id: &str, content: String) {
     let window = web_sys::window().unwrap();
     let doc = web_sys::Window::document(&window).unwrap();
@@ -223,7 +212,7 @@ pub fn _set_focus(id: &str) {
     div.focus().unwrap();
 }
 
-pub fn get_method() -> Method {
+pub fn get_method() -> HttpMethod {
     let window = web_sys::window().unwrap();
     let doc = web_sys::Window::document(&window).unwrap();
     let div = web_sys::Document::get_element_by_id(&doc, "methodselect").unwrap();
@@ -233,19 +222,19 @@ pub fn get_method() -> Method {
     let value = select.value();
 
     match value.as_str() {
-        "get" => Method::GET,
-        "post" => Method::POST,
-        "put" => Method::PUT,
-        "delete" => Method::DELETE,
-        "head" => Method::HEAD,
-        "patch" => Method::PATCH,
-        "options" => Method::OPTIONS,
-        "connect" => Method::CONNECT,
+        "get" => HttpMethod::GET,
+        "post" => HttpMethod::POST,
+        "put" => HttpMethod::PUT,
+        "delete" => HttpMethod::DELETE,
+        "head" => HttpMethod::HEAD,
+        "patch" => HttpMethod::PATCH,
+        "options" => HttpMethod::OPTIONS,
+        "connect" => HttpMethod::CONNECT,
 
         _ => {
             bolt_panic("invalid method");
 
-            Method::GET
+            HttpMethod::GET
         }
     }
 }

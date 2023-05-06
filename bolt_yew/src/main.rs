@@ -1,4 +1,3 @@
-use crate::helpers::enums::HttpMethod as Method;
 use crate::utils::*;
 use futures::stream::SplitSink;
 use serde::{Deserialize, Serialize};
@@ -14,13 +13,15 @@ mod style;
 mod utils;
 mod view;
 
+use bolt_ws::prelude::HttpMethod;
+
 // TODO: Copy response body button
 // FIXME: request headers and params do not scroll
 
 // Define the possible messages which can be sent to the component
 #[derive(Clone)]
 pub enum Msg {
-    SelectedMethod(Method),
+    SelectedMethod(HttpMethod),
     SendPressed,
     ReqBodyPressed,
     ReqHeadersPressed,
@@ -111,7 +112,7 @@ pub struct Request {
     body: String,
     headers: Vec<Vec<String>>,
     params: Vec<Vec<String>>,
-    method: Method,
+    method: HttpMethod,
 
     response: Response,
 
@@ -131,7 +132,7 @@ impl Request {
             body: String::new(),
             headers: vec![vec![String::new(), String::new()]],
             params: vec![vec![String::new(), String::new()]],
-            method: Method::GET,
+            method: HttpMethod::GET,
 
             response: Response::new(),
 
@@ -177,7 +178,7 @@ pub struct BoltContext {
 
     main_col: Collection,
     collections: Vec<Collection>,
-    ws: Option<SplitSink<gloo_net::websocket::futures::WebSocket, WSMessage>>,
+    ws_tx: Option<SplitSink<gloo_net::websocket::futures::WebSocket, WSMessage>>,
 }
 
 #[derive(Clone, Serialize, Deserialize)]
@@ -202,7 +203,7 @@ impl BoltContext {
 
             main_current: 0,
             col_current: vec![0, 0],
-            ws: None,
+            ws_tx: None,
         }
     }
 }
@@ -225,6 +226,7 @@ lazy_static::lazy_static! {
     static ref GLOBAL_STATE: Arc<Mutex<BoltState>> = Arc::new(Mutex::new(BoltState::new()));
 }
 
+static BACKEND: &str = "http://127.0.0.1:3344/";
 static BACKEND_WS: &str = "ws://127.0.0.1:5555/";
 
 impl Component for BoltApp {
@@ -242,7 +244,7 @@ impl Component for BoltApp {
         let ws = WebSocket::open(BACKEND_WS).unwrap();
         let (write, mut read) = ws.split();
 
-        state.bctx.ws = Some(write);
+        state.bctx.ws_tx = Some(write);
 
         wasm_bindgen_futures::spawn_local(async move {
             while let Some(msg) = read.next().await {
@@ -293,13 +295,13 @@ fn send_request(request: &mut Request) {
     invoke_send(request);
 }
 
-pub fn receive_response(data: &str) {
+pub fn receive_response(data: String) {
     let mut state = GLOBAL_STATE.lock().unwrap();
     let bctx = &mut state.bctx;
 
     // bolt_log("received a response");
 
-    let mut response: Response = serde_json::from_str(data).unwrap();
+    let mut response: Response = serde_json::from_str(&data).unwrap();
 
     // _bolt_log(&format!("{:?}", response));
 
