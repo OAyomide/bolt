@@ -89,7 +89,7 @@ pub fn start(args: Vec<String>, port: u16) {
         }
 
         std::thread::spawn(move || {
-            bolt_ws::launch_server(5555, ADDRESS.to_string());
+            bolt_ws::launch_ws_server(5555, ADDRESS.to_string());
         });
 
         bolt_http::launch_server(port, ADDRESS.to_string());
