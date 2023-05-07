@@ -8,7 +8,7 @@ use crate::Request;
 use yew::KeyboardEvent;
 use yew::{html, Html};
 
-use bolt_ws::prelude::HttpMethod;
+use bolt_common::prelude::HttpMethod;
 
 pub fn request(bctx: &mut BoltContext) -> Html {
     let link = bctx.link.as_ref().unwrap();

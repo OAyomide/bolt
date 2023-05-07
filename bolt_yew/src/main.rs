@@ -13,7 +13,7 @@ mod style;
 mod utils;
 mod view;
 
-use bolt_ws::prelude::HttpMethod;
+use bolt_common::prelude::HttpMethod;
 
 // TODO: Copy response body button
 // FIXME: request headers and params do not scroll
@@ -226,7 +226,7 @@ lazy_static::lazy_static! {
     static ref GLOBAL_STATE: Arc<Mutex<BoltState>> = Arc::new(Mutex::new(BoltState::new()));
 }
 
-static BACKEND: &str = "http://127.0.0.1:3344/";
+// static BACKEND: &str = "http://127.0.0.1:3344/";
 static BACKEND_WS: &str = "ws://127.0.0.1:5555/";
 
 impl Component for BoltApp {
@@ -259,6 +259,8 @@ impl Component for BoltApp {
             }
             _bolt_log("WS: WebSocket Closed");
         });
+
+        restore_state();
 
         Self {}
     }
@@ -326,7 +328,5 @@ pub fn receive_response(data: String) {
 }
 
 fn main() {
-    restore_state();
-
     yew::Renderer::<BoltApp>::new().render();
 }

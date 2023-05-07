@@ -101,11 +101,11 @@ pub fn create_state(path: &String) {
     std::fs::write(path, new_state).unwrap();
 }
 
-// pub fn open_browser(link: String) {
-//     std::thread::sleep(std::time::Duration::from_secs(2));
+pub fn open_browser(link: String) {
+    std::thread::sleep(std::time::Duration::from_secs(2));
 
-//     webbrowser::open(&link).unwrap();
-// }
+    webbrowser::open(&link).unwrap();
+}
 
 pub fn reset_home() {
     println!("reseting dist");
