@@ -350,31 +350,19 @@ dependencies = [
 ]
 
 [[package]]
-name = "bolt_core"
+name = "bolt_common"
 version = "0.11.11"
 dependencies = [
- "bolt_http",
- "bolt_ws",
- "dirs 4.0.0",
+ "serde",
 ]
 
 [[package]]
-name = "bolt_http"
+name = "bolt_core"
 version = "0.11.11"
 dependencies = [
  "actix-files",
  "actix-web",
- "dirs 4.0.0",
- "reqwest",
- "serde",
- "serde_json",
- "webbrowser",
-]
-
-[[package]]
-name = "bolt_ws"
-version = "0.11.11"
-dependencies = [
+ "bolt_common",
  "dirs 5.0.1",
  "getrandom 0.2.9",
  "reqwest",

@@ -2,12 +2,12 @@ use crate::BoltContext;
 use crate::Msg;
 use crate::Request;
 use crate::SaveState;
-use crate::BACKEND;
+// use crate::BACKEND;
 use crate::GLOBAL_STATE;
 
+use crate::receive_response;
 use futures::SinkExt;
 use gloo_net::websocket::Message;
-use crate::receive_response;
 use wasm_bindgen::closure::Closure;
 use wasm_bindgen::JsCast;
 use web_sys::{EventTarget, MouseEvent};
@@ -17,7 +17,7 @@ use syntect::highlighting::{Color, Theme};
 use syntect::html::highlighted_html_for_string;
 use syntect::parsing::SyntaxSet;
 
-use bolt_ws::prelude::*;
+use bolt_common::prelude::*;
 
 pub fn _bolt_log(log: &str) {
     let log = log.to_string();
@@ -98,6 +98,10 @@ pub fn handle_ws_message(txt: String) {
             MsgType::HTTP_RESPONSE => {
                 handle_http_response_msg(txt);
             }
+
+            MsgType::RESTORE_STATE => {
+                handle_restore_response_msg(txt);
+            }
         },
 
         Err(_err) => {
@@ -105,7 +109,6 @@ pub fn handle_ws_message(txt: String) {
         }
     }
 }
-
 
 fn handle_http_response_msg(txt: String) {
     // _bolt_log(&format!("received response"));
@@ -119,6 +122,14 @@ fn handle_ping_msg(_txt: String) {
 
 fn handle_invalid_msg(txt: String) {
     _bolt_log(&format!("received invalid msg: {txt}"));
+}
+
+fn handle_restore_response_msg(txt: String) {
+    _bolt_log(&format!("received restore resp"));
+
+   let msg: RestoreStateMsg = serde_json::from_str(&txt).unwrap();
+
+    set_save_state(msg.save);
 }
 
 pub fn invoke_send(request: &mut Request) {
@@ -178,20 +189,14 @@ fn set_save_state(state: String) {
 }
 
 pub fn restore_state() {
-    wasm_bindgen_futures::spawn_local(async move {
-        let client = reqwest::Client::new();
+    let msg = RestoreStateMsg {
+        msg_type: MsgType::RESTORE_STATE,
+        save: "".to_string()
+    };
 
-        let res = client
-            .post(BACKEND.to_string() + "restore_state")
-            .send()
-            .await
-            .expect("restore state failed");
+    let msg = serde_json::to_string(&msg).unwrap();
 
-        let resp = res.text().await.unwrap();
-        // _bolt_log(&text);
-
-        set_save_state(resp);
-    });
+    ws_write(msg);
 }
 
 pub fn _set_html(id: &str, content: String) {

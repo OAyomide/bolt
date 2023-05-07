@@ -1,7 +1,5 @@
+mod session;
 mod utils;
-
-use bolt_http;
-use utils::*;
 
 static VERSION: &str = "0.11.11";
 static HELP: &str = r#"
@@ -71,27 +69,27 @@ pub fn start(args: Vec<String>, port: u16) {
     }
 
     if reset {
-        reset_home();
+        utils::reset_home();
     }
 
     if launch {
-        verify_home();
-        verify_state();
+        utils::verify_home();
+        utils::verify_state();
 
         if !is_tauri {
-            verify_dist();
+            utils::verify_dist();
         }
 
         if !is_tauri && !is_headless {
             std::thread::spawn(move || {
-                bolt_http::launch_asset_server(port + 1, ADDRESS.to_string());
+                session::asset::launch_asset_server(port + 1, ADDRESS.to_string());
             });
         }
 
-        std::thread::spawn(move || {
-            bolt_ws::launch_ws_server(5555, ADDRESS.to_string());
-        });
+        // std::thread::spawn(move || {
+        // session::session::launch_core_server(5555, ADDRESS.to_string());
+        // });
 
-        bolt_http::launch_server(port, ADDRESS.to_string());
+        session::server::launch_core_server(5555, ADDRESS.to_string());
     }
 }
