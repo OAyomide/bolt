@@ -15,50 +15,51 @@ setup:
 
 # Install Bolt CLI
 install-cli:
-	cd cli && cargo install --path .
+	cd bolt_cli && cargo install --path .
 
-# Build Bolt Desktop App
-build: build-yew-tauri build-tauri
-	cp -r ./tauri/target/release/bundle ./target
+# Build Bolt Desktop App in release mode
+build: build-yew build-tauri
+	cp -r ./bolt_tauri/target/release/bundle ./target
 
-# Build Bolt CLI
-build-cli: build-yew-cli
-	cd cli && cargo build --release
+# Build Bolt CLI in release mode
+build-cli: build-yew
+	cd bolt_cli && cargo build --release
 
 # Run Bolt Desktop App in debug mode
-run: build-yew-tauri watch-tauri
+run: build-yew watch-tauri
 
 # Run Bolt CLI in debug mode
-run-cli: build-yew-cli
-	cd cli && BOLT_DEV=1 cargo run
+run-cli: build-yew
+	cd bolt_cli && BOLT_DEV=1 cargo run
 
-build-yew: build-yew-cli build-yew-tauri
+# Run Bolt Core in headless mode
+run-headless:
+	cd bolt_cli && BOLT_DEV=1 cargo run -- --headless
 
-build-yew-tauri:
-	cd yew && trunk build -d ../tauri/dist --filehash false
-	cd yew && cp ./script.js ../tauri/dist
-	
-build-yew-cli:
-	cd yew && trunk build -d ../tauri/dist --filehash false
-	cd yew && cp ./script.js ../tauri/dist
+build-yew:
+	cd bolt_yew && trunk build -d ../bolt_tauri/dist --filehash false
+	cd bolt_yew && cp ./script.js ../bolt_tauri/dist
+	mkdir ./bolt_tauri/dist/icon/
+	cp -r ./icon/* ./bolt_tauri/dist/icon/ 
 
 build-tauri:
-	cd tauri && cargo tauri build
+	cd bolt_tauri && cargo tauri build
 
 watch-tauri:
 	cargo tauri dev
 
+publish:
+	cd bolt_server && cargo publish
+	cd bolt_cli && cargo publish
+
 # Clean temporary build files
-clean: clean-yew clean-tauri clean-cli clean-lib
+clean: clean-yew clean-tauri clean-cli
 
 clean-yew:
-	cd yew && cargo clean
+	cd bolt_yew && cargo clean
 
 clean-tauri:
-	cd tauri && cargo clean
+	cd bolt_tauri && cargo clean
 
 clean-cli:
-	cd cli && cargo clean
-
-clean-lib:
-	cd lib_bolt && cargo clean
+	cd bolt_cli && cargo clean
